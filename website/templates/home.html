@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="home-layout">
+    <!-- Main content area similar to Instagram feed -->
+    <div class="main-section">
+        <div class="home-content">
+            <!-- Conditionally display "You're all caught up" -->
+            {% if all_viewed %}
+            <h2 class="text-center mt-4">You're all caught up</h2>
+            <p class="text-center">You've seen all new posts from the past 3 days.</p>
+            {% endif %}
+            
+            <!-- Placeholder for suggested posts or updates -->
+            <div class="suggested-posts text-center mt-5">
+                <h3>Suggested Posts</h3>
+                <ul class="list-group mt-3">
+                    {% for post in suggested_posts %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="post-link">{{ post.title }}</a>
+                        <p>{{ post.content[:100] }}...</p> <!-- Display first 100 characters -->
+                    </li>
+                    {% else %}
+                    <li class="list-group-item">No suggested posts available</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right section for suggested accounts like Instagram -->
+    <div class="right-section">
+        <div class="suggested-accounts">
+            <h4>Suggested Accounts</h4>
+            <ul class="list-group">
+                {% for account in suggested_accounts %}
+                <a href="{{ url_for('views.public_account', user_id=account.id) }}" class="account-link">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            {% if account.profile_picture %}
+                            <img src="{{ url_for('static', filename='profile_pics/' + account.profile_picture) }}" alt="Profile Picture" class="rounded-circle border border-light" style="width: 40px; height: 40px; margin-right: 10px;">
+                            {% else %}
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="rounded-circle border border-light" style="width: 40px; height: 40px; margin-right: 10px;">
+                            {% endif %}
+                            <span>{{ account.first_name }} {{ account.last_name }}</span>
+                        </div>
+                        <span class="btn btn-primary btn-sm">Follow</span>
+                    </li>
+                </a>
+                {% else %}
+                <li class="list-group-item">No suggested accounts available</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+  /* Layout to mimic Instagram's design */
+  .home-layout {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    color: #EAEAEA;
+  }
+
+  /* Main content styling */
+  .main-section {
+    width: 70%;
+    padding: 20px;
+    color: #EAEAEA;
+  }
+
+  .home-content h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #EAEAEA;
+  }
+
+  .suggested-posts {
+    margin-top: 30px;
+  }
+
+  .suggested-posts h3 {
+    color: #4da8da;
+  }
+
+  /* Right section with suggested accounts */
+  .right-section {
+    width: 25%;
+    padding-left: 20px;
+    color: #EAEAEA;
+  }
+
+  .suggested-accounts h4 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #EAEAEA;
+  }
+
+  /* Styling for list items */
+  .list-group-item {
+    background-color: #333;
+    color: #EAEAEA;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+    padding: 15px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .list-group-item:hover {
+    background-color: #444;
+    transform: scale(1.02); /* Slight hover effect */
+  }
+
+  .account-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .post-link {
+    color: #4da8da;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .post-link:hover {
+    color: #73c9eb;
+    text-decoration: underline;
+  }
+
+  .btn-primary {
+    width: 80px;
+    font-size: 14px;
+    padding: 5px;
+    background-color: #4da8da;
+    border-color: #4da8da;
+  }
+
+  .btn-primary:hover {
+    background-color: #2c91bb;
+    border-color: #2c91bb;
+    transform: scale(1.05);
+  }
+
+  /* Media queries for responsiveness */
+  @media (max-width: 768px) {
+    .home-layout {
+      flex-direction: column;
+    }
+
+    .main-section, .right-section {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+
+      if ("IntersectionObserver" in window) {
+          let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+              entries.forEach(function(entry) {
+                  if (entry.isIntersecting) {
+                      let lazyImage = entry.target;
+                      lazyImage.src = lazyImage.dataset.src;
+                      lazyImage.classList.remove("lazy");
+                      lazyImageObserver.unobserve(lazyImage);
+                  }
+              });
+          });
+
+          lazyImages.forEach(function(lazyImage) {
+              lazyImageObserver.observe(lazyImage);
+          });
+      } else {
+          lazyImages.forEach(function(lazyImage) {
+              lazyImage.src = lazyImage.dataset.src;
+          });
+      }
+  });
+</script>
+{% endblock %}

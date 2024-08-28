@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Login</h2>
+    <form method="POST" action="{{ url_for('auth.login') }}" onsubmit="return validateLoginForm()">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.email.label }}<br>
+            {{ form.email(class="form-control", id="email") }}
+            <div id="emailFeedback" class="invalid-feedback"></div>
+        </div>
+        <div class="form-group">
+            {{ form.password.label }}<br>
+            {{ form.password(class="form-control", id="password") }}
+            <div id="passwordFeedback" class="invalid-feedback"></div>
+        </div>
+        <div class="form-group form-check">
+            {{ form.remember_me(class="form-check-input") }}
+            {{ form.remember_me.label(class="form-check-label") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+<script>
+    function validateLoginForm() {
+        let valid = true;
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        const emailFeedback = document.getElementById('emailFeedback');
+        const passwordFeedback = document.getElementById('passwordFeedback');
+
+        if (!email.value) {
+            email.classList.add('is-invalid');
+            emailFeedback.textContent = 'Email is required.';
+            valid = false;
+        } else {
+            email.classList.remove('is-invalid');
+        }
+
+        if (!password.value) {
+            password.classList.add('is-invalid');
+            passwordFeedback.textContent = 'Password is required.';
+            valid = false;
+        } else {
+            password.classList.remove('is-invalid');
+        }
+
+        return valid;
+    }
+</script>

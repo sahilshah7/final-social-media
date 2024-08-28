@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.first_name }}'s Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="profile-header text-center mb-4">
+        {% if user.profile_picture %}
+        <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm" style="width: 120px; height: 120px;">
+        {% else %}
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm" style="width: 120px; height: 120px;">
+        {% endif %}
+        
+        <h3 class="text-light">{{ user.username or user.first_name }}</h3>
+        <p class="text-muted">{{ user.bio or "No bio added yet." }}</p>
+
+        <div class="d-flex justify-content-center mb-3">
+            <div class="px-2">
+                <button class="btn btn-link text-light" data-toggle="modal" data-target="#followersModal">
+                    Followers: <strong>{{ followers|length }}</strong>
+                </button>
+            </div>
+            <div class="px-2">
+                <button class="btn btn-link text-light" data-toggle="modal" data-target="#followingModal">
+                    Following: <strong>{{ following|length }}</strong>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Follow/Unfollow Button -->
+        <form method="POST" action="{{ url_for('views.follow', user_id=user.id) }}" class="mt-2">
+            {{ form.hidden_tag() }} <!-- CSRF token field -->
+            <div class="form-group">
+                {% set is_following = False %}
+                {% for f in followers %}
+                    {% if current_user.id == f.follower_id %}
+                        {% set is_following = True %}
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" class="btn btn-outline-light">
+                    {% if is_following %}
+                        Unfollow
+                    {% else %}
+                        Follow
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <hr class="border-secondary">
+
+    <!-- User Posts Section -->
+    <div class="user-posts">
+        <h4 class="text-light mb-4">Posts</h4>
+        <div class="list-group">
+            {% for post in user.posts %}
+            <div class="list-group-item bg-transparent text-light border-0 mb-3" style="padding-left: 0;">
+                <h5>{{ post.title }}</h5>
+                <p>{{ post.content }}</p>
+                <p class="text-muted"><small>Posted on {{ post.date_created.strftime('%B %d, %Y') }}</small></p>
+                <a href="{{ url_for('views.forum_post', id=post.id) }}" class="btn btn-outline-light">View Comments</a>
+            </div>
+            {% else %}
+            <p class="text-muted">This user hasn't posted anything yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Followers Modal -->
+<div class="modal fade" id="followersModal" tabindex="-1" role="dialog" aria-labelledby="followersModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="followersModalLabel">Followers</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group list-group-flush">
+                    {% for follower in followers %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}">{{ follower.follower_user.username or follower.follower_user.first_name }}</a>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item">No followers yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Following Modal -->
+<div class="modal fade" id="followingModal" tabindex="-1" role="dialog" aria-labelledby="followingModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="followingModalLabel">Following</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group list-group-flush">
+                    {% for follow in following %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}">{{ follow.followed_user.username or follow.followed_user.first_name }}</a>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item">Not following anyone yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+  .container {
+      max-width: 900px;
+  }
+
+  .profile-header img {
+      border: 3px solid #343a40;
+  }
+
+  hr {
+      border-top: 1px solid #495057;
+  }
+
+  .btn-outline-light {
+      color: #f8f9fa;
+      border-color: #17a2b8;
+  }
+
+  .btn-outline-light:hover {
+      background-color: #17a2b8;
+      color: #fff;
+  }
+
+  .btn-link {
+      color: #f8f9fa;
+      text-decoration: none;
+  }
+
+  .btn-link:hover {
+      color: #17a2b8;
+      text-decoration: underline;
+  }
+
+  .list-group-item {
+      padding: 0;
+  }
+
+  .list-group-item h5 {
+      margin-bottom: 0.5rem;
+  }
+
+  .list-group-item p {
+      margin-bottom: 0.25rem;
+  }
+</style>
+{% endblock %}

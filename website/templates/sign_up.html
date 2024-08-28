@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <h3 class="text-center">Sign Up</h3>
+
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            {{ form.email(class="form-control", id="email", placeholder="Enter email") }}
+        </div>
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            {{ form.username(class="form-control", id="username", placeholder="Enter username") }}
+        </div>
+
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            {{ form.first_name(class="form-control", id="firstName", placeholder="Enter first name") }}
+        </div>
+
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            {{ form.last_name(class="form-control", id="lastName", placeholder="Enter last name") }}
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            {{ form.password(class="form-control", id="password", placeholder="Enter password") }}
+        </div>
+
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            {{ form.confirm_password(class="form-control", id="confirm_password", placeholder="Confirm password") }}
+        </div>
+
+        <br />
+        <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+    </form>
+
+    <!-- Flash messages to show error/success messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</div>
+{% endblock %}

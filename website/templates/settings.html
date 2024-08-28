@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Settings</h2>
+    <div class="form-group">
+        <label for="toggle-dark-mode">Dark Mode</label>
+        <button id="toggle-dark-mode" class="btn btn-secondary">Toggle Dark Mode</button>
+    </div>
+    <!-- Add more settings options here -->
+</div>
+{% endblock %}
+{% block javascript %}
+<script src="{{ url_for('static', filename='index.js') }}"></script>
+{% endblock %}

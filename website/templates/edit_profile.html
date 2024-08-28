@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Edit Profile{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Main edit profile section -->
+        <div class="col-md-6 offset-md-3">
+            <h2 class="text-center">Edit Profile</h2>
+            
+            <!-- Profile Edit Form -->
+            <form method="POST" action="{{ url_for('views.edit_profile') }}">
+                {{ edit_form.hidden_tag() }}  <!-- CSRF Token -->
+
+                <!-- Name Field -->
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    {{ edit_form.name(class="form-control", id="name") }}
+                </div>
+
+                <!-- Website Field -->
+                <div class="form-group">
+                    <label for="website">Website</label>
+                    {{ edit_form.website(class="form-control", id="website") }}
+                    <small class="form-text text-muted">Visit the app on mobile to edit your website link.</small>
+                </div>
+
+                <!-- Bio Field -->
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    {{ edit_form.bio(class="form-control", id="bio", rows="3") }}
+                    <small class="form-text text-muted">Max 150 characters.</small>
+                </div>
+
+                <!-- Gender Selection -->
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    {{ edit_form.gender(class="form-control", id="gender") }}
+                    <small class="form-text text-muted">This won’t be displayed on your public profile.</small>
+                </div>
+
+                <!-- Account Suggestions -->
+                <div class="form-group">
+                    <label for="account_suggestions">Account Suggestions</label>
+                    <div class="custom-control custom-switch">
+                        {{ edit_form.show_suggestions(class="custom-control-input", id="account_suggestions") }}
+                        <label class="custom-control-label" for="account_suggestions">Show account suggestions on profiles</label>
+                    </div>
+                    <small class="form-text text-muted">Choose if your profile can appear in other people's suggestions and vice versa.</small>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Styles for Edit Profile Page -->
+<style>
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .custom-switch {
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}

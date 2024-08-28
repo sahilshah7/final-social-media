@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Post Details -->
+    <div class="post-header bg-dark p-4 rounded shadow-sm mb-4">
+        <div class="d-flex align-items-center">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle" style="width: 60px; height: 60px; margin-right: 15px;">
+            <div>
+                <h3 class="text-light">{{ post.title }}</h3>
+                <p class="text-muted">Posted on {{ post.date_created.strftime('%B %d, %Y') }} by <a href="{{ url_for('views.public_account', user_id=post.author.id) }}" class="text-info">{{ post.author.first_name }}</a></p>
+            </div>
+        </div>
+        <p class="text-light mt-3">{{ post.content }}</p>
+        <div class="d-flex justify-content-start mt-3">
+            <button class="btn btn-outline-secondary btn-sm mr-2">Share on Facebook</button>
+            <button class="btn btn-outline-secondary btn-sm">Share on Twitter</button>
+        </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="comments-section bg-dark p-4 rounded shadow-sm">
+        <h4 class="text-info mb-3">Comments</h4>
+
+        {% if comments %}
+        <ul class="list-group list-group-flush">
+            {% for comment in comments %}
+            <li class="list-group-item bg-dark text-light mb-3 rounded">
+                <div class="d-flex align-items-center mb-2">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px; margin-right: 10px;">
+                    <h5 class="text-info">{{ comment.author.first_name }}</h5> <!-- Updated comment to use 'author' -->
+                </div>
+                <p>{{ comment.content }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">No comments yet. Be the first to comment!</p>
+        {% endif %}
+    </div>
+
+    <!-- Comment Form -->
+    <div class="add-comment mt-4">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.comment.label(class="text-light") }}
+                {{ form.comment(class="form-control bg-dark text-light", placeholder="Add a comment...") }}
+            </div>
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .container {
+        max-width: 900px;
+    }
+
+    .post-header {
+        background-color: #2c2f33;
+        border-radius: 10px;
+    }
+
+    .comments-section {
+        background-color: #2c2f33;
+        border-radius: 10px;
+    }
+
+    .form-control {
+        border: 1px solid #17a2b8;
+    }
+
+    .list-group-item {
+        border: none;
+    }
+
+    .list-group-item p {
+        margin: 0;
+    }
+</style>
+{% endblock %}

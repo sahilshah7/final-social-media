@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+{% block title %}{{ current_user.first_name }}'s Profile{% endblock %}
+{% block content %}
+<div class="container profile-container">
+    <!-- Profile header (Profile picture, username, followers, etc.) -->
+    <div class="row profile-header align-items-center">
+        <div class="col-auto">
+            {% if current_user.profile_picture %}
+            <img src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Profile Picture" class="profile-picture">
+            {% else %}
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="profile-picture">
+            {% endif %}
+        </div>
+        <div class="col">
+            <h1 class="username">{{ current_user.first_name }} {{ current_user.last_name }}</h1>
+            <p>{{ current_user.bio or 'No bio added yet.' }}</p>
+            <p><strong>Website:</strong> 
+                {% if current_user.website %}
+                <a href="{{ current_user.website }}" target="_blank">{{ current_user.website }}</a>
+                {% else %}
+                Not specified
+                {% endif %}
+            </p>
+            <p><strong>Gender:</strong> {{ current_user.gender or 'Prefer not to say' }}</p>
+
+            <!-- Edit Profile Button -->
+            <div class="d-flex align-items-center mt-3">
+                <a href="{{ url_for('views.edit_profile') }}" class="btn btn-outline-primary ml-3">Edit Profile</a>
+            </div>
+
+            <!-- Followers and Following -->
+            <div class="profile-stats mt-3">
+                <button class="btn btn-link" data-toggle="modal" data-target="#followersModal">
+                    <strong>{{ followers | length }}</strong> followers
+                </button>
+                <button class="btn btn-link ml-2" data-toggle="modal" data-target="#followingModal">
+                    <strong>{{ following | length }}</strong> following
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post navigation (Posts, Saved, Tagged) -->
+    <div class="profile-navigation mt-4">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link active" id="posts-tab" data-toggle="tab" href="#posts-content">Posts</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="saved-tab" data-toggle="tab" href="#saved-content">Saved</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tagged-tab" data-toggle="tab" href="#tagged-content">Tagged</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Tab Content Sections -->
+    <div class="tab-content mt-4">
+        <!-- Posts Content -->
+        <div class="tab-pane fade show active" id="posts-content">
+            <div class="posts-grid">
+                <div class="row">
+                    {% if current_user.posts | length > 0 %}
+                    {% for post in current_user.posts %}
+                    <div class="col-12 col-md-4 mb-4">
+                        <div class="post-card">
+                            <a href="{{ url_for('views.post_detail', post_id=post.id) }}">
+                                {% if post.image %}
+                                <img src="{{ url_for('static', filename='post_images/' + post.image) }}" class="img-fluid">
+                                {% else %}
+                                <div class="post-content">
+                                    <h5>{{ post.title }}</h5>
+                                    <p>{{ post.content[:100] }}...</p> <!-- Display first 100 characters -->
+                                </div>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-center w-100">No posts yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Saved Content -->
+        <div class="tab-pane fade" id="saved-content">
+            <div class="posts-grid">
+                <div class="row">
+                    {% if current_user.saved_posts | length > 0 %}
+                    {% for post in current_user.saved_posts %}
+                    <div class="col-12 col-md-4 mb-4">
+                        <div class="post-card">
+                            <a href="{{ url_for('views.post_detail', post_id=post.id) }}">
+                                {% if post.image %}
+                                <img src="{{ url_for('static', filename='post_images/' + post.image) }}" class="img-fluid">
+                                {% else %}
+                                <div class="post-content">
+                                    <h5>{{ post.title }}</h5>
+                                    <p>{{ post.content[:100] }}...</p>
+                                </div>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-center w-100">No saved posts yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tagged Content -->
+        <div class="tab-pane fade" id="tagged-content">
+            <div class="posts-grid">
+                <div class="row">
+                    {% if current_user.tagged_posts | length > 0 %}
+                    {% for post in current_user.tagged_posts %}
+                    <div class="col-12 col-md-4 mb-4">
+                        <div class="post-card">
+                            <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="post-link">
+                                {% if post.image %}
+                                <img src="{{ url_for('static', filename='post_images/' + post.image) }}" class="img-fluid post-image" alt="{{ post.title }}">
+                                {% else %}
+                                <div class="post-content">
+                                    <h5 class="post-title">{{ post.title }}</h5>
+                                    <p class="post-snippet">{{ post.content[:100] }}...</p>
+                                </div>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>                    
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-center w-100">No tagged posts yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Followers Modal -->
+<div class="modal fade" id="followersModal" tabindex="-1" role="dialog" aria-labelledby="followersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="followersModalLabel">Followers</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    {% if followers | length > 0 %}
+                    {% for follower in followers %}
+                    <li class="list-group-item follower-item">
+                        <a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}" class="follower-link">{{ follower.follower_user.first_name }}</a>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-center">No followers yet.</p>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Following Modal -->
+<div class="modal fade" id="followingModal" tabindex="-1" role="dialog" aria-labelledby="followingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="followingModalLabel">Following</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group">
+                    {% if following | length > 0 %}
+                    {% for follow in following %}
+                    <li class="list-group-item following-item">
+                        <a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}" class="following-link">{{ follow.followed_user.first_name }}</a>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-center">No following yet.</p>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles for Modals and List Items -->
+<style>
+    /* Modal styles for dark theme */
+    .modal-content {
+        background-color: #222;
+        color: #eaeaea;
+    }
+    .modal-header {
+        border-bottom: 1px solid #444;
+    }
+    .modal-title {
+        color: #4da8da;
+    }
+    .modal-body p {
+        color: #b3b3b3;
+    }
+    .modal-body .list-group-item {
+        background-color: #333;
+        border: 1px solid #444;
+        color: #eaeaea;
+    }
+    .modal-body .list-group-item:hover {
+        background-color: #444;
+    }
+    .modal-body .list-group-item a {
+        color: #4da8da;
+        text-decoration: none;
+    }
+    .modal-body .list-group-item a:hover {
+        color: #73c9eb;
+    }
+    .close {
+        color: #eaeaea;
+    }
+</style>
+
+<!-- Script to handle tab switching -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = document.querySelectorAll('.nav-link');
+        const tabContents = document.querySelectorAll('.tab-pane');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetContent = document.querySelector(this.getAttribute('href'));
+
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('show', 'active'));
+
+                // Add active class to clicked tab and the corresponding content
+                this.classList.add('active');
+                targetContent.classList.add('show', 'active');
+            });
+        });
+    });
+</script>
+
+<!-- Styles for profile layout -->
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        color: #eaeaea;
+    }
+    .profile-header {
+        border-bottom: 1px solid #333;
+        padding-bottom: 20px;
+    }
+    .profile-picture {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #4da8da;
+    }
+    .username {
+        font-size: 1.8rem;
+        margin-bottom: 0;
+        color: #4da8da;
+    }
+    .profile-stats button {
+        background: none;
+        border: none;
+        color: #4da8da;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .nav-link {
+        color: #eaeaea;
+        font-weight: bold;
+        padding: 10px 20px;
+    }
+    .nav-link.active {
+        border-top: 2px solid #4da8da;
+    }
+    .posts-grid .post-card {
+        border: 1px solid #4da8da;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: #1c1c1c;
+    }
+    .posts-grid .post-card img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    .profile-stats button:hover {
+        color: #2c91bb;
+    }
+
+    /* Adjustments for smaller screens */
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .posts-grid .post-card {
+            margin-bottom: 15px;
+        }
+
+        .username {
+            font-size: 1.5rem;
+        }
+    }
+
+/* Post card styling */
+.post-card {
+    border: 1px solid #4da8da;
+    border-radius: 10px;
+    padding: 15px;
+    background-color: #1e1e1e;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.post-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.post-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.post-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.post-content {
+    padding: 10px 0;
+}
+
+.post-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #4da8da;
+    margin-bottom: 5px;
+}
+
+.post-snippet {
+    font-size: 0.9rem;
+    color: #b3b3b3;
+}
+
+/* Adjustments for smaller screens */
+@media (max-width: 768px) {
+    .post-title {
+        font-size: 1rem;
+    }
+
+    .post-snippet {
+        font-size: 0.8rem;
+    }
+}
+
+</style>
+{% endblock %}
