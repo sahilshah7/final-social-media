@@ -59,7 +59,7 @@ def create_app():
     login_manager.login_message_category = 'info'
 
     # Import models here to avoid circular imports
-    from .models import User
+    from .models import User, ForumPost, Comment, Like, Follower, Notification
 
     # User loader for Flask-Login
     @login_manager.user_loader
@@ -71,5 +71,9 @@ def create_app():
     from .auth import auth
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/auth')
+
+    # Initialize the database (create tables if they don't exist)
+    with app.app_context():
+        db.create_all()  # Creates the database tables
 
     return app
