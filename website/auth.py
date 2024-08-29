@@ -26,23 +26,24 @@ def logout():
     logout_user()
     return redirect(url_for('auth.login'))
 
+from flask import render_template, redirect, url_for, flash
+from . import db
+from .models import User
+from .forms import RegistrationForm
+from flask_login import login_user
+from werkzeug.security import generate_password_hash
+
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
     form = RegistrationForm()
 
-    # Check if form is submitted and validated
     if form.validate_on_submit():
         email = form.email.data
         username = form.username.data
         first_name = form.first_name.data
-        name = form.name.data  # Make sure this field is present in the form
+        name = form.name.data  # Ensure this field exists and is required
         last_name = form.last_name.data
         password = form.password.data
-
-        # Validate that the name is provided
-        if not name:
-            flash('Name is required', 'error')
-            return redirect(url_for('auth.sign_up'))
 
         # Check if the email already exists
         existing_user = User.query.filter_by(email=email).first()
@@ -56,27 +57,27 @@ def sign_up():
             flash('Username is already taken', 'error')
             return redirect(url_for('auth.sign_up'))
 
-        # Create new user, making sure to add the 'name' field
+        # Create a new user instance
         new_user = User(
             email=email,
             username=username,
             first_name=first_name,
-            name=name,  # Include the name field
+            name=name,  # The name field is used here
             last_name=last_name,
-            password=generate_password_hash(password, method='pbkdf2:sha256')  # Secure password hashing
+            password=generate_password_hash(password, method='pbkdf2:sha256')
         )
 
         # Add the user to the database
         db.session.add(new_user)
         db.session.commit()
 
-        # Log in the new user
+        # Log in the newly created user
         login_user(new_user)
 
         flash('Your account has been created! You are now logged in.', 'success')
         return redirect(url_for('views.home'))
 
-    # If the form is 
+    # Render the sign-up page with the form
     return render_template('sign_up.html', form=form)
 
 @auth.route('/reset_password_request', methods=['GET', 'POST'])

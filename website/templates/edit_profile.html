@@ -11,10 +11,22 @@
             <form method="POST" action="{{ url_for('views.edit_profile') }}">
                 {{ edit_form.hidden_tag() }}  <!-- CSRF Token -->
 
+                <!-- First Name Field -->
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    {{ edit_form.first_name(class="form-control", id="first_name") }}
+                </div>
+
                 <!-- Name Field -->
                 <div class="form-group">
                     <label for="name">Name</label>
                     {{ edit_form.name(class="form-control", id="name") }}
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    {{ edit_form.email(class="form-control", id="email") }}
                 </div>
 
                 <!-- Website Field -->
@@ -31,21 +43,11 @@
                     <small class="form-text text-muted">Max 150 characters.</small>
                 </div>
 
-                <!-- Gender Selection -->
+                <!-- Gender Field -->
                 <div class="form-group">
                     <label for="gender">Gender</label>
                     {{ edit_form.gender(class="form-control", id="gender") }}
                     <small class="form-text text-muted">This won’t be displayed on your public profile.</small>
-                </div>
-
-                <!-- Account Suggestions -->
-                <div class="form-group">
-                    <label for="account_suggestions">Account Suggestions</label>
-                    <div class="custom-control custom-switch">
-                        {{ edit_form.show_suggestions(class="custom-control-input", id="account_suggestions") }}
-                        <label class="custom-control-label" for="account_suggestions">Show account suggestions on profiles</label>
-                    </div>
-                    <small class="form-text text-muted">Choose if your profile can appear in other people's suggestions and vice versa.</small>
                 </div>
 
                 <!-- Submit Button -->
@@ -61,9 +63,6 @@
 <style>
     .form-group {
         margin-bottom: 20px;
-    }
-    .custom-switch {
-        margin-top: 10px;
     }
 </style>
 {% endblock %}

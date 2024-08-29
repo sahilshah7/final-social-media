@@ -36,7 +36,7 @@ class EditAccountForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email(), Length(min=6, max=150)])
     bio = TextAreaField('Bio', validators=[Optional(), Length(max=150)])
     gender = StringField('Gender', validators=[Optional(), Length(max=50)])
-    website = StringField('Website', validators=[Optional(), URL(), Length(max=100)])  # Added URL validation
+    website = StringField('Website', validators=[Optional(), URL(), Length(max=100)])
     submit = SubmitField('Save Changes')
 
 

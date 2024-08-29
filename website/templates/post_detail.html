@@ -31,6 +31,13 @@
                     </a>                    
                 </small>
             </div>
+            {% if current_user.id == post.user_id %}
+            <div class="ms-auto">
+                <form method="POST" action="{{ url_for('views.delete_post', post_id=post.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete Post</button>
+                </form>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Post Content -->
@@ -89,7 +96,7 @@
                             {% else %}
                             <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="rounded-circle border border-light" style="width: 40px; height: 40px; margin-right: 10px;">
                             {% endif %}
-                            <div>
+                            <div class="flex-grow-1">
                                 <p class="mb-1"><strong>{{ comment.author.username or comment.author.first_name }} {{ comment.author.last_name or '' }}</strong></p>
                                 <p class="mb-0">{{ comment.content }}</p>
                                 <small class="text-muted">Posted on 
@@ -100,6 +107,13 @@
                                     {% endif %}
                                 </small>
                             </div>
+                            {% if current_user.id == comment.user_id %}
+                            <div class="ms-auto">
+                                <form method="POST" action="{{ url_for('views.delete_comment', comment_id=comment.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete Comment</button>
+                                </form>
+                            </div>
+                            {% endif %}
                         </div>
                     </li>
                     {% endfor %}
@@ -110,12 +124,15 @@
         </div>
 
         <!-- Comment Form -->
-        <form method="post" action="{{ url_for('views.comment_post', post_id=post.id) }}" class="mt-4">
+        <form method="post" action="{{ url_for('views.post_detail', post_id=post.id) }}" class="mt-4">
             <div class="form-group">
                 <textarea class="form-control bg-secondary text-light border-light" name="content" rows="4" placeholder="Add a comment..." required></textarea>
             </div>
             <button type="submit" class="btn btn-info mt-3">Post Comment</button>
         </form>
+
+    </div>
+</div>
 
 <!-- JavaScript for Upvote/Downvote Functionality -->
 <script>

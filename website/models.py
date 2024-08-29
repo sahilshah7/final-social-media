@@ -15,6 +15,17 @@ class Notification(db.Model):
     def __repr__(self):
         return f'<Notification {self.id} - {self.notification_type}>'
 
+# Example method to create notifications
+def create_notification(user_id, from_user_id, message, post_id=None):
+    notification = Notification(
+        user_id=user_id,
+        from_user_id=from_user_id,
+        message=message,
+        post_id=post_id
+    )
+    db.session.add(notification)
+    db.session.commit()
+    
 # User model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

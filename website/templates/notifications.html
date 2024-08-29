@@ -56,7 +56,6 @@
             color: #eaeaea;
         }
 
-        /* Notifications container - Removing box-like styles */
         .notifications-header {
             font-size: 1.5rem;
             font-weight: bold;
@@ -103,7 +102,6 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
-        /* Responsive design for smaller screens */
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -132,13 +130,15 @@
     <div class="main-content">
         <div class="notifications-header">Notifications</div>
 
-        <!-- Check if there are notifications -->
         {% if notifications|length > 0 %}
             {% for notification in notifications %}
             <div class="notification-item">
                 <div class="notification-text">
                     <span>{{ notification.message }}</span>
                     <span class="notification-time">{{ notification.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                    {% if notification.post_id %}
+                    <a href="{{ url_for('views.post_detail', post_id=notification.post_id) }}" class="btn btn-sm btn-info mt-2">View Post</a>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

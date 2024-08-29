@@ -79,13 +79,16 @@
                 </button>
             </div>
             <div class="modal-body">
-                <ul class="list-group list-group-flush">
+                <ul class="list-unstyled">
                     {% for follower in followers %}
-                    <li class="list-group-item">
-                        <a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}">{{ follower.follower_user.username or follower.follower_user.first_name }}</a>
+                    <li class="media my-3">
+                        <img src="{{ url_for('static', filename='profile_pics/' + (follower.follower_user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="rounded-circle mr-3" style="width: 50px; height: 50px;">
+                        <div class="media-body">
+                            <h5 class="mt-0 mb-1"><a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}" class="text-light">{{ follower.follower_user.username or follower.follower_user.first_name }}</a></h5>
+                        </div>
                     </li>
                     {% else %}
-                    <li class="list-group-item">No followers yet.</li>
+                    <li class="text-muted">No followers yet.</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -104,13 +107,16 @@
                 </button>
             </div>
             <div class="modal-body">
-                <ul class="list-group list-group-flush">
+                <ul class="list-unstyled">
                     {% for follow in following %}
-                    <li class="list-group-item">
-                        <a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}">{{ follow.followed_user.username or follow.followed_user.first_name }}</a>
+                    <li class="media my-3">
+                        <img src="{{ url_for('static', filename='profile_pics/' + (follow.followed_user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="rounded-circle mr-3" style="width: 50px; height: 50px;">
+                        <div class="media-body">
+                            <h5 class="mt-0 mb-1"><a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}" class="text-light">{{ follow.followed_user.username or follow.followed_user.first_name }}</a></h5>
+                        </div>
                     </li>
                     {% else %}
-                    <li class="list-group-item">Not following anyone yet.</li>
+                    <li class="text-muted">Not following anyone yet.</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -152,16 +158,44 @@
       text-decoration: underline;
   }
 
-  .list-group-item {
-      padding: 0;
+  .media {
+      align-items: center;
   }
 
-  .list-group-item h5 {
-      margin-bottom: 0.5rem;
+  .media img {
+      border: 2px solid #17a2b8;
   }
 
-  .list-group-item p {
-      margin-bottom: 0.25rem;
+  .modal-content {
+      background-color: #2b2b2b;
+      color: #eaeaea;
+      border: none;
+  }
+
+  .modal-header {
+      border-bottom: 1px solid #444;
+  }
+
+  .modal-title {
+      color: #f8f9fa;
+  }
+
+  .modal-body {
+      padding: 1.5rem;
+  }
+
+  .modal-footer {
+      border-top: 1px solid #444;
+  }
+
+  .list-unstyled a {
+      color: #4da8da;
+      text-decoration: none;
+  }
+
+  .list-unstyled a:hover {
+      color: #17a2b8;
+      text-decoration: underline;
   }
 </style>
 {% endblock %}
