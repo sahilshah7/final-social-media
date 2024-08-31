@@ -22,7 +22,7 @@
         }
 
         body {
-            background-color: #181818; /* Matching Notifications page background */
+            background-color: #181818;
             color: #f0f0f0;
             font-family: 'Inter', sans-serif;
             overflow-y: scroll;
@@ -35,15 +35,20 @@
             left: 0;
             height: 100%;
             width: 260px;
-            background-color: #000; /* Dark sidebar background */
+            background-color: #000;
             padding-top: 20px;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
         }
 
-        /* VoiceBridge logo styling */
+        /* Hide sidebar and content if access is restricted */
+        .sidebar.hidden, .main-content.hidden {
+            display: none;
+        }
+
         .navbar-brand {
             font-size: 3rem;
             font-weight: bold;
@@ -54,7 +59,6 @@
             padding-left: 20px;
         }
 
-        /* Sidebar link styling */
         .sidebar a {
             display: flex;
             align-items: center;
@@ -82,16 +86,15 @@
             border-left: 5px solid #4da8da;
         }
 
-        /* Content area */
         .main-content {
             margin-left: 280px;
             padding: 40px;
-            background-color: #181818; /* Matching Notifications page background */
+            background-color: #181818;
             border-radius: 8px;
             color: #f0f0f0;
+            padding-bottom: 60px; /* Add padding to accommodate the footer */
         }
 
-        /* Buttons styling */
         .btn-primary {
             background-color: #4da8da;
             border-color: #4da8da;
@@ -105,7 +108,6 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
-        /* Breadcrumb styling */
         .breadcrumb-item + .breadcrumb-item::before {
             content: '>';
             color: #6c757d;
@@ -119,7 +121,6 @@
             text-decoration: underline;
         }
 
-        /* Loading spinner */
         #loadingSpinner {
             position: fixed;
             top: 50%;
@@ -128,18 +129,11 @@
             z-index: 1050;
         }
 
-        /* Ensure Scrollability */
         html, body {
             height: 100%;
             overflow-x: hidden;
         }
 
-        .main-content {
-            min-height: 100vh;
-            padding-bottom: 60px;
-        }
-
-        /* Card styling */
         .card {
             background-color: #333;
             color: #f0f0f0;
@@ -151,35 +145,49 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
-        /* Form controls */
         .form-control {
             background-color: #333;
             color: #f0f0f0;
             border-color: #4da8da;
         }
 
-        /* Placeholder text */
         .form-control::placeholder {
             color: #b3b3b3;
+        }
+
+        /* Tiny Footer Styles */
+        .tiny-footer {
+            background-color: #000;
+            color: #f0f0f0;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.75rem; /* Tiny font size */
+            position: fixed; /* Fixed position at the bottom */
+            left: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .tiny-footer p {
+            margin: 0;
         }
     </style>
 </head>
 <body>
-
     <!-- Sidebar for navigation -->
     <div class="sidebar">
         <a class="navbar-brand" href="/">VoiceBridge</a>
 
         <!-- Navigation links for authenticated users -->
-        <a href="{{ url_for('views.account') }}" class="{% if request.path == '/account' %}active{% endif %}"><i class="fas fa-user"></i> Account</a>
-        <a href="{{ url_for('views.forums') }}" class="{% if request.path == '/forums' %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>
-        <a href="{{ url_for('views.notifications') }}" class="{% if request.path == '/notifications' %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="{{ url_for('views.account') }}" class="{% if request.path == url_for('views.account') %}active{% endif %}"><i class="fas fa-user"></i> Account</a>
+        <a href="{{ url_for('views.forums') }}" class="{% if request.path == url_for('views.forums') %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>
+        <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
         <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
 
         <!-- Only display Log In and Sign Up if user is not authenticated -->
         {% if not current_user.is_authenticated %}
-            <a href="{{ url_for('auth.login') }}" class="{% if request.path == '/login' %}active{% endif %}"><i class="fas fa-sign-in-alt"></i> Log In</a>
-            <a href="{{ url_for('auth.sign_up') }}" class="{% if request.path == '/sign-up' %}active{% endif %}"><i class="fas fa-user-plus"></i> Sign Up</a>
+            <a href="{{ url_for('auth.login') }}" class="{% if request.path == url_for('auth.login') %}active{% endif %}"><i class="fas fa-sign-in-alt"></i> Log In</a>
+            <a href="{{ url_for('auth.sign_up') }}" class="{% if request.path == url_for('auth.sign_up') %}active{% endif %}"><i class="fas fa-user-plus"></i> Sign Up</a>
         {% endif %}
     </div>
 
@@ -212,12 +220,17 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Content Area -->
-        {% block content %}{% endblock %}
+        {% block content %}
+        <!-- Main content goes here -->
+        {% endblock %}
     </div>
 
-    <!-- Removed the Footer -->
+    <!-- Tiny Footer -->
+    <footer class="tiny-footer">
+        <p>No asking for credit card numbers. No asking for photos. No interacting with creeps.</p>
+    </footer>
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -227,12 +240,13 @@
         document.addEventListener("DOMContentLoaded", function() {
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
-                if (!form.querySelector('input[name="csrf_token"]')) {
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = 'csrf_token';
-                    csrfInput.value = "{{ csrf_token() }}";
-                    form.appendChild(csrfInput);
+                const csrfToken = '{{ csrf_token() }}';
+                if (form) {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'csrf_token';
+                    hiddenInput.value = csrfToken;
+                    form.appendChild(hiddenInput);
                 }
             });
         });

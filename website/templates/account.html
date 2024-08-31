@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <!-- Post navigation (Posts, Saved, Tagged) -->
+    <!-- Post navigation (Posts, Saved) -->
     <div class="profile-navigation mt-4">
         <ul class="nav justify-content-center">
             <li class="nav-item">
@@ -48,9 +48,6 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="saved-tab" data-toggle="tab" href="#saved-content">Saved</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="tagged-tab" data-toggle="tab" href="#tagged-content">Tagged</a>
             </li>
         </ul>
     </div>
@@ -112,36 +109,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Tagged Content -->
-        <div class="tab-pane fade" id="tagged-content">
-            <div class="posts-grid">
-                <div class="row">
-                    {% if current_user.tagged_posts | length > 0 %}
-                    {% for post in current_user.tagged_posts %}
-                    <div class="col-12 col-md-4 mb-4">
-                        <div class="post-card">
-                            <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="post-link">
-                                {% if post.image %}
-                                <img src="{{ url_for('static', filename='post_images/' + post.image) }}" class="img-fluid post-image" alt="{{ post.title }}">
-                                {% else %}
-                                <div class="post-content">
-                                    <h5 class="post-title">{{ post.title }}</h5>
-                                    <p class="post-snippet">{{ post.content[:100] }}...</p>
-                                </div>
-                                {% endif %}
-                            </a>
-                        </div>
-                    </div>                    
-                    {% endfor %}
-                    {% else %}
-                    <p class="text-center w-100">No tagged posts yet.</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Followers Modal -->
 <div class="modal fade" id="followersModal" tabindex="-1" role="dialog" aria-labelledby="followersModalLabel" aria-hidden="true">

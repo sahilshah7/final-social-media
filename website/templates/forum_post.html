@@ -1,85 +1,135 @@
 {% extends "base.html" %}
 
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}Post Details{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <!-- Post Details -->
-    <div class="post-header bg-dark p-4 rounded shadow-sm mb-4">
-        <div class="d-flex align-items-center">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle" style="width: 60px; height: 60px; margin-right: 15px;">
+    <!-- Main Post Section -->
+    <div class="post bg-dark text-light p-4 rounded shadow-sm">
+        <div class="d-flex align-items-center mb-4">
+            {% if post.author.profile_picture %}
+            <img src="{{ url_for('static', filename='profile_pics/' + post.author.profile_picture) }}" alt="Profile Picture" class="rounded-circle border border-light" style="width: 50px; height: 50px; margin-right: 15px;">
+            {% else %}
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="rounded-circle border border-light" style="width: 50px; height: 50px; margin-right: 15px;">
+            {% endif %}
             <div>
-                <h3 class="text-light">{{ post.title }}</h3>
-                <p class="text-muted">Posted on {{ post.date_created.strftime('%B %d, %Y') }} by <a href="{{ url_for('views.public_account', user_id=post.author.id) }}" class="text-info">{{ post.author.first_name }}</a></p>
+                <small class="text-muted">
+                    Posted on 
+                    {% if post.date_created %}
+                        {{ post.date_created.strftime('%B %d, %Y') }}
+                    {% else %}
+                        Date not available
+                    {% endif %}
+                    by 
+                    <a href="{{ url_for('views.public_account', user_id=post.author.id) }}" class="text-info">
+                        {% if post.author.username and post.author.username != 'default_username' %}
+                            {{ post.author.username }}
+                        {% else %}
+                            {{ post.author.first_name or '' }} {{ post.author.last_name or '' }}
+                        {% endif %}
+                    </a>                    
+                </small>
+            </div>
+            {% if current_user.id == post.user_id %}
+            <div class="ms-auto" style="margin-left:auto;">
+                <form method="POST" action="{{ url_for('views.delete_post', post_id=post.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete Post</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Post Image -->
+        <div class="post-content mb-4 text-center">
+            {% if post.image %}
+            <img src="{{ url_for('static', filename='uploads/' + post.image) }}" alt="Post Image" class="img-fluid rounded mb-3">
+            {% endif %}
+        </div>
+
+        <!-- Post Actions -->
+        <div class="post-actions d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <form method="post" action="{{ url_for('views.save_post', post_id=post.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-save"></i> 
+                        {% if current_user in post.savers %} Unsave {% else %} Save {% endif %}
+                    </button>
+                </form>
+                <a href="#" class="btn btn-outline-light btn-sm" title="Share this post"><i class="fas fa-share"></i> Share</a>
+                <a href="#" class="btn btn-outline-light btn-sm" title="Report this post"><i class="fas fa-flag"></i> Report</a>
             </div>
         </div>
-        <p class="text-light mt-3">{{ post.content }}</p>
-        <div class="d-flex justify-content-start mt-3">
-            <button class="btn btn-outline-secondary btn-sm mr-2">Share on Facebook</button>
-            <button class="btn btn-outline-secondary btn-sm">Share on Twitter</button>
+
+        <!-- High Five Section -->
+        <div class="d-flex justify-content-start mb-4">
+            <form method="POST" action="{{ url_for('views.give_highfive', post_id=post.id) }}">
+                {{ highfive_form.hidden_tag() }}
+                <button type="submit" class="btn btn-outline-success btn-sm">Give High Five</button>
+            </form>
+            <span class="ml-3 text-light">{{ highfives }} High Fives</span>
         </div>
-    </div>
-
-    <!-- Comments Section -->
-    <div class="comments-section bg-dark p-4 rounded shadow-sm">
-        <h4 class="text-info mb-3">Comments</h4>
-
-        {% if comments %}
-        <ul class="list-group list-group-flush">
-            {% for comment in comments %}
-            <li class="list-group-item bg-dark text-light mb-3 rounded">
-                <div class="d-flex align-items-center mb-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px; margin-right: 10px;">
-                    <h5 class="text-info">{{ comment.author.first_name }}</h5> <!-- Updated comment to use 'author' -->
-                </div>
-                <p>{{ comment.content }}</p>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="text-muted">No comments yet. Be the first to comment!</p>
-        {% endif %}
-    </div>
-
-    <!-- Comment Form -->
-    <div class="add-comment mt-4">
-        <form method="POST" action="">
-            {{ form.hidden_tag() }}
-            <div class="form-group">
-                {{ form.comment.label(class="text-light") }}
-                {{ form.comment(class="form-control bg-dark text-light", placeholder="Add a comment...") }}
-            </div>
-            <button type="submit" class="btn btn-primary">Post Comment</button>
-        </form>
     </div>
 </div>
 
 <!-- Styles -->
 <style>
+    body {
+        background-color: #181818;
+        color: #eaeaea;
+        font-family: Arial, sans-serif;
+    }
+
     .container {
         max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
     }
 
-    .post-header {
-        background-color: #2c2f33;
-        border-radius: 10px;
+    .post {
+        background-color: #2b2b2b;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
     }
 
-    .comments-section {
-        background-color: #2c2f33;
-        border-radius: 10px;
+    .post-content {
+        text-align: center;
     }
 
-    .form-control {
-        border: 1px solid #17a2b8;
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
     }
 
-    .list-group-item {
-        border: none;
+    .post-actions {
+        border-top: 1px solid #444;
+        padding-top: 10px;
+        margin-top: 10px;
     }
 
-    .list-group-item p {
-        margin: 0;
+    .post-actions .btn {
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+
+    .post-actions .btn:hover {
+        background-color: #4da8da;
+        color: #fff;
+    }
+
+    .actions .btn {
+        margin-right: 10px;
+    }
+
+    .actions .btn:hover {
+        background-color: #4da8da;
+        color: #fff;
+    }
+
+    .ms-auto {
+        margin-left: auto;
     }
 </style>
 {% endblock %}

@@ -1,27 +1,45 @@
-# Python cache files
+# Python specific
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
+*.pyd
+*.env
+.env
 
-# Virtual environment
+# Flask-SQLAlchemy/SQLAlchemy database files
+*.db
+*.sqlite3
+
+# Ignore local instance folder
+instance/
+
+# Ignore environment variable files
+.env
+.venv/
+
+# Ignore compiled files
+*.pyc
+
+# Ignore virtual environment
 venv/
-.env/
 
-# SQLite Database
+# Ignore migrations folder if not using Flask-Migrate
+# Uncomment the next line if you don't want to track migrations (not recommended)
+# migrations/
+
+# Ignore specific IDE or editor files
+.vscode/
+.idea/
+
+# Logs and databases
+*.log
+*.pot
+*.pid
+*.gz
 *.db
 
-# Migrations
-migrations/
+# Ignore uploaded files in development
+uploads/
 
-# Pytest
-.pytest_cache/
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# VSCode settings
-.vscode/
-
-.vscode
-website/__pycache__
-website/database.db
+# Ignore staticfiles (you might want to track only certain files)
+static/

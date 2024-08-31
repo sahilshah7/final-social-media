@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Website Closed{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="access-restricted">
+        <h1>Website Closed</h1>
+        <p>We are open from 10 AM to 12 PM PST. Please check back during the designated time window.</p>
+    </div>
+</div>
+
+<style>
+  /* Add styles for restricted access notifications */
+  .access-restricted {
+    text-align: center;
+    padding: 20px;
+    background-color: #181818; /* Same as the background color */
+    color: #d1d1d1; /* Light grey text color */
+    border-radius: 8px;
+    box-shadow: none; /* Remove the shadow */
+    margin-top: -40vh; /* Move the text up even higher */
+    position: relative;
+    top: 10%; /* Fine-tune vertical positioning */
+  }
+
+  .access-restricted h1 {
+    font-size: 2.5rem; /* Large text size */
+    color: #4da8da; /* Light blue color for "Website Closed" */
+    margin-bottom: 10px;
+  }
+
+  .access-restricted p {
+    font-size: 1.25rem; /* Slightly larger text for readability */
+    margin: 0;
+  }
+
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    background-color: #181818; /* Dark background for contrast */
+  }
+
+  /* Responsive styling */
+  @media (max-width: 768px) {
+    .access-restricted h1 {
+      font-size: 1.75rem; /* Adjust font size for smaller screens */
+    }
+
+    .access-restricted p {
+      font-size: 1rem; /* Adjust font size for smaller screens */
+    }
+  }
+</style>
+{% endblock %}

@@ -4,19 +4,28 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Create a New Post in {{ forum.title }}</h1>
-    <form method="POST" action="{{ url_for('views.create_post', forum_id=forum.id) }}">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.title.label(class="form-label") }}
-            {{ form.title(class="form-control", placeholder="Enter post title") }}
-        </div>
-        <div class="form-group">
-            {{ form.content.label(class="form-label") }}
-            {{ form.content(class="form-control", rows="5", placeholder="Write your post content here") }}
-        </div>
-        <button type="submit" class="btn btn-primary submit-btn">Submit</button>
-    </form>
+    <h1 class="text-center">Create a New Post in {{ forum.title }}</h1>
+    <!-- Centered form -->
+    <div class="d-flex justify-content-center">
+        <form method="POST" action="{{ url_for('views.create_post', forum_id=forum.id) }}" enctype="multipart/form-data" class="text-center w-100" style="max-width: 500px;">
+            {{ form.hidden_tag() }}
+
+            <!-- Custom styled file input for image upload -->
+            <div class="form-group">
+                <label for="imageInput" class="form-label">Upload Image</label>
+                <div class="custom-file-upload mx-auto">
+                    <input type="file" id="imageInput" name="image" class="custom-file-input">
+                    <label for="imageInput" id="fileLabel" class="styled-button">Choose an image</label>
+                </div>
+                <img id="imagePreview" src="#" alt="Image Preview" class="img-fluid rounded mt-3" style="display: none; max-height: 400px;" />
+            </div>
+
+            <!-- Centered Submit Button -->
+            <div class="form-group">
+                <button type="submit" class="btn submit-btn">Create Post</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Styles for dark theme -->
@@ -43,24 +52,43 @@
     .form-label {
         font-weight: bold;
         color: #eaeaea;
+        display: block;
+        margin-bottom: 10px;
     }
 
-    .form-control {
-        background-color: #333;
-        color: #eaeaea;
-        border: none;
-        padding: 10px;
+    .custom-file-upload {
+        position: relative;
+        display: inline-block;
+        width: 250px;
         margin-bottom: 20px;
-        border-radius: 4px;
     }
 
-    .form-control:focus {
-        background-color: #444;
-        border: 1px solid #4da8da;
+    .custom-file-input {
+        width: 100%;
+        opacity: 0;
+        z-index: 2;
+        position: absolute;
+        left: 0;
+        top: 0;
+        cursor: pointer;
+        height: 100%;
     }
 
-    .form-control::placeholder {
-        color: #b3b3b3;
+    .styled-button {
+        display: block;
+        padding: 10px 15px;
+        border-radius: 5px;
+        color: #4da8da;
+        border: 2px solid #4da8da;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        font-size: 1rem;
+    }
+
+    .styled-button:hover {
+        background-color: #4da8da;
+        color: #ffffff;
     }
 
     .submit-btn {
@@ -69,8 +97,9 @@
         color: #fff;
         font-size: 1.1rem;
         padding: 10px 20px;
-        width: 100%;
+        width: 250px;
         border-radius: 4px;
+        margin-top: 20px;
     }
 
     .submit-btn:hover {
@@ -80,6 +109,18 @@
 
     .form-group {
         margin-bottom: 25px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #imagePreview {
+        max-width: 100%;
+        border: 1px solid #4da8da;
+        padding: 5px;
+        background-color: #333;
+        border-radius: 4px;
+        margin-top: 20px;
     }
 
     @media (max-width: 768px) {
@@ -97,4 +138,29 @@
         }
     }
 </style>
+
+<!-- JavaScript to handle image preview and file label update -->
+<script>
+    document.getElementById('imageInput').addEventListener('change', function() {
+        const file = this.files[0];
+        const fileLabel = document.getElementById('fileLabel');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+            
+            // Update the file label to show the selected file name
+            fileLabel.textContent = file.name;
+        } else {
+            // Reset the label and hide the preview if no file is selected
+            fileLabel.textContent = "Choose an image";
+            document.getElementById('imagePreview').style.display = 'none';
+        }
+    });
+</script>
 {% endblock %}

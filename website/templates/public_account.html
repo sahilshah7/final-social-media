@@ -56,10 +56,8 @@
         <div class="list-group">
             {% for post in user.posts %}
             <div class="list-group-item bg-transparent text-light border-0 mb-3" style="padding-left: 0;">
-                <h5>{{ post.title }}</h5>
-                <p>{{ post.content }}</p>
                 <p class="text-muted"><small>Posted on {{ post.date_created.strftime('%B %d, %Y') }}</small></p>
-                <a href="{{ url_for('views.forum_post', id=post.id) }}" class="btn btn-outline-light">View Comments</a>
+                <a href="{{ url_for('views.forum_post', id=post.id) }}" class="btn btn-outline-light">View Post</a>
             </div>
             {% else %}
             <p class="text-muted">This user hasn't posted anything yet.</p>

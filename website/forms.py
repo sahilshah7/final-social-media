@@ -1,8 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, SubmitField, BooleanField, TextAreaField
-from wtforms.validators import InputRequired, Length, Email, EqualTo
+from wtforms.validators import InputRequired, Length, Email, EqualTo, DataRequired, Optional, URL
 from flask_wtf.file import FileField, FileAllowed
-from wtforms.validators import DataRequired, Optional, URL
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[InputRequired(), Email(), Length(max=150)])
@@ -21,14 +20,19 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Sign Up')
 
 class PostForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    content = TextAreaField('Content', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    image = FileField('Choose an Image', validators=[
+        DataRequired(),
+        FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')
+    ])
+    submit = SubmitField('Create Post')
 
 class CommentForm(FlaskForm):
     content = TextAreaField('Comment', validators=[DataRequired()])
     comment = TextAreaField('Comment', validators=[DataRequired()])
     submit = SubmitField('Post Comment')
+
+class HighFiveForm(FlaskForm):  # New form for High Fives
+    submit = SubmitField('Give High Five')
 
 class EditAccountForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=50)])
@@ -38,7 +42,6 @@ class EditAccountForm(FlaskForm):
     gender = StringField('Gender', validators=[Optional(), Length(max=50)])
     website = StringField('Website', validators=[Optional(), URL(), Length(max=100)])
     submit = SubmitField('Save Changes')
-
 
 class DeleteAccountForm(FlaskForm):
     submit = SubmitField('Delete Account')
@@ -70,7 +73,7 @@ class EditProfileForm(FlaskForm):
     show_suggestions = BooleanField('Show account suggestions')
     
     submit = SubmitField('Save Changes')
-    
+
 class UpdateProfilePictureForm(FlaskForm):
     profile_picture = FileField('Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Update Picture')

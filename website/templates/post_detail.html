@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}Post Details{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -13,7 +13,6 @@
             <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="rounded-circle border border-light" style="width: 50px; height: 50px; margin-right: 15px;">
             {% endif %}
             <div>
-                <h3 class="text-info">{{ post.title }}</h3>
                 <small class="text-muted">
                     Posted on 
                     {% if post.date_created %}
@@ -32,7 +31,7 @@
                 </small>
             </div>
             {% if current_user.id == post.user_id %}
-            <div class="ms-auto">
+            <div class="ms-auto" style="margin-left:auto;">
                 <form method="POST" action="{{ url_for('views.delete_post', post_id=post.id) }}" style="display: inline;">
                     <button type="submit" class="btn btn-danger btn-sm">Delete Post</button>
                 </form>
@@ -40,160 +39,37 @@
             {% endif %}
         </div>
 
-        <!-- Post Content -->
-        <div class="post-content mb-4">
-            <p>{{ post.content }}</p>
+        <!-- Post Image -->
+        <div class="post-content mb-4 text-center">
+            {% if post.image %}
+            <img src="{{ url_for('static', filename='uploads/' + post.image) }}" alt="Post Image" class="img-fluid rounded mb-3">
+            {% endif %}
         </div>
 
-        <!-- Post Meta Data and Actions -->
-        <div class="post-actions d-flex align-items-center mb-4">
-            <div class="voting d-flex align-items-center">
-                <!-- Upvote Button -->
-                <button class="btn btn-outline-light btn-sm me-2 vote-button" data-action="upvote" data-post-id="{{ post.id }}" title="Upvote">
-                    <i class="fas fa-arrow-up"></i>
-                </button>
-                <!-- Vote Count -->
-                <span class="vote-count fs-5" id="vote-count-{{ post.id }}">{{ post.vote_count or 0 }}</span>
-                <!-- Downvote Button -->
-                <button class="btn btn-outline-light btn-sm ms-2 vote-button" data-action="downvote" data-post-id="{{ post.id }}" title="Downvote">
-                    <i class="fas fa-arrow-down"></i>
-                </button>
-            </div>
-
-            <div class="actions ms-auto d-flex align-items-center">
-                <!-- Save/Unsave Button -->
-                <form method="post" action="{{ url_for('views.save_post', post_id=post.id) }}">
-                    <button type="submit" class="btn btn-outline-light btn-sm me-3">
+        <!-- Post Actions -->
+        <div class="post-actions d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <form method="post" action="{{ url_for('views.save_post', post_id=post.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-outline-light btn-sm">
                         <i class="fas fa-save"></i> 
                         {% if current_user in post.savers %} Unsave {% else %} Save {% endif %}
                     </button>
                 </form>
-                <a href="#" class="btn btn-outline-light btn-sm me-3" title="Share this post"><i class="fas fa-share"></i> Share</a>
+                <a href="#" class="btn btn-outline-light btn-sm" title="Share this post"><i class="fas fa-share"></i> Share</a>
                 <a href="#" class="btn btn-outline-light btn-sm" title="Report this post"><i class="fas fa-flag"></i> Report</a>
             </div>
         </div>
 
-        <hr class="bg-light">
-
-        <!-- Locked Post Notification -->
-        {% if post.is_locked %}
-        <div class="alert alert-warning d-flex align-items-center">
-            <i class="fas fa-lock me-2"></i>
-            <span>This post is locked. New comments cannot be posted.</span>
+        <!-- High Five Section -->
+        <div class="d-flex justify-content-start mb-4">
+            <form method="POST" action="{{ url_for('views.give_highfive', post_id=post.id) }}">
+                {{ highfive_form.hidden_tag() }}
+                <button type="submit" class="btn btn-outline-success btn-sm">Give High Five</button>
+            </form>
+            <span class="ml-3 text-light">{{ highfives }} High Fives</span>
         </div>
-        {% endif %}
-
-        <!-- Comments Section -->
-        <h3 class="text-info mt-5">Comments</h3>
-        <div class="comments-section mt-4">
-            {% if comments %}
-                <ul class="list-group bg-dark">
-                    {% for comment in comments %}
-                    <li class="list-group-item bg-secondary text-light my-2 rounded">
-                        <div class="d-flex align-items-center">
-                            {% if comment.author.profile_picture %}
-                            <img src="{{ url_for('static', filename='profile_pics/' + comment.author.profile_picture) }}" alt="Profile Picture" class="rounded-circle border border-light" style="width: 40px; height: 40px; margin-right: 10px;">
-                            {% else %}
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="rounded-circle border border-light" style="width: 40px; height: 40px; margin-right: 10px;">
-                            {% endif %}
-                            <div class="flex-grow-1">
-                                <p class="mb-1"><strong>{{ comment.author.username or comment.author.first_name }} {{ comment.author.last_name or '' }}</strong></p>
-                                <p class="mb-0">{{ comment.content }}</p>
-                                <small class="text-muted">Posted on 
-                                    {% if comment.date_created %}
-                                        {{ comment.date_created.strftime('%B %d, %Y') }}
-                                    {% else %}
-                                        Date not available
-                                    {% endif %}
-                                </small>
-                            </div>
-                            {% if current_user.id == comment.user_id %}
-                            <div class="ms-auto">
-                                <form method="POST" action="{{ url_for('views.delete_comment', comment_id=comment.id) }}" style="display: inline;">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete Comment</button>
-                                </form>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <div class="alert alert-info mt-3">No comments yet. Be the first to comment!</div>
-            {% endif %}
-        </div>
-
-        <!-- Comment Form -->
-        <form method="post" action="{{ url_for('views.post_detail', post_id=post.id) }}" class="mt-4">
-            <div class="form-group">
-                <textarea class="form-control bg-secondary text-light border-light" name="content" rows="4" placeholder="Add a comment..." required></textarea>
-            </div>
-            <button type="submit" class="btn btn-info mt-3">Post Comment</button>
-        </form>
-
     </div>
 </div>
-
-<!-- JavaScript for Upvote/Downvote Functionality -->
-<script>
-    document.querySelectorAll('.vote-button').forEach(button => {
-        button.addEventListener('click', function() {
-            const postId = this.getAttribute('data-post-id');
-            const action = this.getAttribute('data-action');
-            const voteCountElement = document.getElementById(`vote-count-${postId}`);
-
-            // Get current vote count and user vote state
-            let voteCount = parseInt(voteCountElement.textContent);
-            let userVote = localStorage.getItem(`vote-${postId}`);
-
-            // Determine vote action
-            if (action === 'upvote') {
-                if (userVote === 'upvote') {
-                    voteCount -= 1;
-                    localStorage.removeItem(`vote-${postId}`);
-                } else {
-                    if (userVote === 'downvote') {
-                        voteCount += 2; // Remove downvote and add upvote
-                    } else {
-                        voteCount += 1; // Add upvote
-                    }
-                    localStorage.setItem(`vote-${postId}`, 'upvote');
-                }
-            } else if (action === 'downvote') {
-                if (userVote === 'downvote') {
-                    voteCount += 1;
-                    localStorage.removeItem(`vote-${postId}`);
-                } else {
-                    if (userVote === 'upvote') {
-                        voteCount -= 2; // Remove upvote and add downvote
-                    } else {
-                        voteCount -= 1; // Add downvote
-                    }
-                    localStorage.setItem(`vote-${postId}`, 'downvote');
-                }
-            }
-
-            // Update the displayed vote count
-            voteCountElement.textContent = voteCount;
-
-            // Send AJAX request to update vote count on the server
-            fetch(`/update_vote/${postId}/${action}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ action: action })
-            }).then(response => {
-                if (!response.ok) {
-                    console.error('Failed to update vote on server');
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-            });
-        });
-    });
-</script>
 
 <!-- Styles -->
 <style>
@@ -217,14 +93,14 @@
         margin-bottom: 20px;
     }
 
-    .post h3 {
-        font-size: 1.75rem;
-        margin-bottom: 10px;
-        color: #4da8da;
+    .post-content {
+        text-align: center;
     }
 
-    .post-content p {
-        line-height: 1.6;
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
     }
 
     .post-actions {
@@ -243,67 +119,17 @@
         color: #fff;
     }
 
-    .post-actions .voting {
-        display: flex;
-        align-items: center;
+    .actions .btn {
+        margin-right: 10px;
     }
 
-    .post-actions .vote-button {
-        border-radius: 50%;
-        margin: 0 5px;
-        padding: 5px;
-        border: 1px solid #555;
-        background-color: #333;
-        transition: background-color 0.3s ease;
-    }
-
-    .post-actions .vote-button:hover {
-        background-color: #4da8da;
-        border-color: #4da8da;
-        color: #fff;
-    }
-
-    .vote-count {
-        font-size: 1.5rem;
-        margin: 0 10px;
-    }
-
-    .comments-section {
-        margin-top: 30px;
-    }
-
-    .list-group-item {
-        background-color: #2b2b2b;
-        border: 1px solid #444;
-        color: #eaeaea;
-        transition: background-color 0.3s ease;
-    }
-
-    .list-group-item:hover {
-        background-color: #333;
-    }
-
-    .alert-info {
-        background-color: #2b2b2b;
-        color: #eaeaea;
-        border: 1px solid #444;
-    }
-
-    .alert-warning {
-        background-color: #ffcc00;
-        color: #000;
-        border: 1px solid #e0a800;
-    }
-
-    .tooltip-inner {
+    .actions .btn:hover {
         background-color: #4da8da;
         color: #fff;
-        border-radius: 4px;
-        padding: 5px 10px;
     }
 
-    .tooltip-arrow {
-        border-top-color: #4da8da;
+    .ms-auto {
+        margin-left: auto;
     }
 </style>
 {% endblock %}

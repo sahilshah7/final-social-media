@@ -41,11 +41,16 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or 'your_default_secret_key'
     app.config['WTF_CSRF_ENABLED'] = True  # Enable CSRF protection
 
-    # Ensure the instance folder exists for SQLite database and other data
+    # Configure the folder for file uploads
+    app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+    # Ensure the upload folder exists
     try:
-        makedirs(app.instance_path, exist_ok=True)
-    except OSError:
-        pass
+        if not path.exists('static'):
+            makedirs('static')
+        makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    except OSError as e:
+        print(f"Error creating directories: {e}")
 
     # Initialize extensions
     db.init_app(app)
@@ -74,6 +79,8 @@ def create_app():
 
     # Initialize the database (create tables if they don't exist)
     with app.app_context():
-        db.create_all()  # Creates the database tables
+        if not path.exists(path.join(app.instance_path, 'database.db')):
+            db.create_all()  # Creates the database tables only if they don't exist
+            print('Created the database!')
 
     return app
