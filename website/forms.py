@@ -20,8 +20,14 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Sign Up')
 
 class PostForm(FlaskForm):
-    image = FileField('Choose an Image', validators=[
+    title = StringField('Title', validators=[
         DataRequired(),
+        Length(max=100, message="Title cannot exceed 100 characters.")
+    ])
+    content = TextAreaField('Content', validators=[
+        Length(max=500, message="Content cannot exceed 500 characters.")
+    ])
+    image = FileField('Choose an Image', validators=[
         FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')
     ])
     submit = SubmitField('Create Post')

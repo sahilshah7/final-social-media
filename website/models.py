@@ -8,13 +8,13 @@ class Notification(db.Model):
     notification_type = db.Column(db.String(50), nullable=False)
     message = db.Column(db.String(200), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # recipient
+    from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # sender
     post_id = db.Column(db.Integer, db.ForeignKey('forum_post.id'), nullable=True)
-
+    
     def __repr__(self):
         return f'<Notification {self.id} - {self.notification_type}>'
-
+    
 # Example method to create notifications
 def create_notification(user_id, from_user_id, message, post_id=None):
     notification = Notification(
@@ -101,8 +101,7 @@ class ForumPost(db.Model):
 
     # Relationship to comments
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
-    highfives = db.relationship('HighFive', backref='post', lazy=True, cascade='all, delete-orphan')  # Updated relationship
-
+    highfives = db.relationship('HighFive', backref='post', lazy=True)  # Check this line
     def __repr__(self):
         return f"ForumPost('{self.title}', '{self.date_created}')"
 

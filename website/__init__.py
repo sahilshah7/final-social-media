@@ -40,17 +40,19 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Turn off SQLAlchemy modification tracking
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or 'your_default_secret_key'
     app.config['WTF_CSRF_ENABLED'] = True  # Enable CSRF protection
-
-    # Configure the folder for file uploads
     app.config['UPLOAD_FOLDER'] = path.join(app.static_folder, 'uploads')
 
+    # Set app to debug mode if environment is development
+    if os.getenv('FLASK_ENV') == 'development':
+        app.debug = True
+
     # Ensure the upload folder exists
-    try:
-        # Create the 'uploads' folder inside the 'static' directory if it doesn't exist
-        if not path.exists(app.config['UPLOAD_FOLDER']):
+    if not path.exists(app.config['UPLOAD_FOLDER']):
+        try:
             makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    except OSError as e:
-        print(f"Error creating directories: {e}")
+            print('Upload folder created successfully.')
+        except OSError as e:
+            print(f"Error creating upload folder: {e}")
 
     # Initialize extensions
     db.init_app(app)

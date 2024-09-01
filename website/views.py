@@ -118,6 +118,22 @@ def outside_online_window():
     """Render a page when access is outside the allowed time window."""
     return render_template('outside_online_window.html')
 
+@views.route('/share_post/<int:post_id>', methods=['POST'])
+@login_required
+def share_post(post_id):
+    post = ForumPost.query.get_or_404(post_id)
+    # Implement your share logic here
+
+    create_notification(
+        notification_type='share_post',
+        recipient=post.author,
+        sender=current_user,
+        message=f'{current_user.username} shared your post.',
+        post=post
+    )
+
+    flash('Post shared!', 'success')
+    return redirect(url_for('views.post_detail', post_id=post_id))
 
 @views.route('/save_post/<int:post_id>', methods=['POST'])
 @login_required
@@ -125,12 +141,18 @@ def save_post(post_id):
     post = ForumPost.query.get_or_404(post_id)
     if current_user in post.savers:
         current_user.saved_posts.remove(post)
-        db.session.commit()
         flash('Post unsaved.', 'info')
     else:
         current_user.saved_posts.append(post)
-        db.session.commit()
+        create_notification(
+            notification_type='save_post',
+            recipient=post.author,
+            sender=current_user,
+            message=f'{current_user.username} saved your post.',
+            post=post
+        )
         flash('Post saved!', 'success')
+    db.session.commit()
     return redirect(url_for('views.post_detail', post_id=post_id))
 
 @views.route('/forum_post/<int:id>', methods=['GET', 'POST'])
@@ -160,12 +182,14 @@ def populate_categories():
 @login_required
 def follow(user_id):
     user = User.query.get_or_404(user_id)
+
+    # Prevent users from following themselves
     if current_user == user:
         flash('You cannot follow yourself!', 'danger')
         return redirect(url_for('views.public_account', user_id=user_id))
-    
+
     follow_record = Follower.query.filter_by(follower_id=current_user.id, followed_id=user.id).first()
-    
+
     if follow_record:
         db.session.delete(follow_record)
         db.session.commit()
@@ -175,6 +199,14 @@ def follow(user_id):
         db.session.add(new_follow)
         db.session.commit()
         flash(f'You are now following {user.first_name}.', 'success')
+
+        # Create a notification for the followed user
+        create_notification(
+            notification_type='follow',
+            recipient=user,
+            sender=current_user,
+            message=f'{current_user.username} started following you.'
+        )
 
     return redirect(url_for('views.public_account', user_id=user_id))
 
@@ -239,37 +271,38 @@ def create_post(forum_id):
     if form.validate_on_submit():
         image_filename = None
         if form.image.data:
-            # Secure the filename and generate the path where the image will be saved
-            image_filename = secure_filename(form.image.data.filename)
+            image = form.image.data
+            image_filename = secure_filename(image.filename)
             image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
-            
-            # Save the image file to the 'uploads' folder
-            form.image.data.save(image_path)
 
-            # Set the file permissions to be readable by the web server
-            os.chmod(image_path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+            # Ensure the directory exists
+            upload_folder = os.path.dirname(image_path)
+            if not os.path.exists(upload_folder):
+                try:
+                    os.makedirs(upload_folder, mode=0o755)
+                except OSError as e:
+                    flash(f'Error creating directory: {e}', 'danger')
+                    return redirect(url_for('views.create_post', forum_id=forum_id))
 
-        # Create a new post in the database
+            try:
+                # Save the image file
+                image.save(image_path)
+            except PermissionError as e:
+                flash(f'Permission error: {e}', 'danger')
+                return redirect(url_for('views.create_post', forum_id=forum_id))
+            except Exception as e:
+                flash(f'Error saving image: {e}', 'danger')
+                return redirect(url_for('views.create_post', forum_id=forum_id))
+
         new_post = ForumPost(
-            title="Untitled",
-            content="",
+            title=form.title.data,
+            content=form.content.data,
             forum_id=forum_id,
             user_id=current_user.id,
-            image=image_filename  # Save image filename to the post
+            image=image_filename
         )
         db.session.add(new_post)
         db.session.commit()
-
-        # Notify followers about the new post
-        followers = current_user.followers
-        for follower in followers:
-            create_notification(
-                'post', 
-                follower.follower_user, 
-                current_user, 
-                f'{current_user.username} uploaded a new image.', 
-                new_post
-            )
 
         flash('Your image has been uploaded!', 'success')
         return redirect(url_for('views.forum_detail', forum_id=forum_id))
@@ -432,11 +465,11 @@ def edit_profile():
 
     return render_template('edit_profile.html', edit_form=edit_form)
 
-def create_notification(notification_type, to_user, from_user, message, post=None):
+def create_notification(notification_type, recipient, sender, message, post=None):
     notification = Notification(
         notification_type=notification_type,
-        user_id=to_user.id,
-        from_user_id=from_user.id,
+        user_id=recipient.id,
+        from_user_id=sender.id,
         message=message,
         post_id=post.id if post else None
     )
@@ -559,27 +592,41 @@ def public_account(user_id):
 
     return render_template('public_account.html', user=user, form=form, followers=followers_list, following=following_list)
 
-@views.route('/give_highfive/<int:post_id>', methods=['POST'])  # New route for giving a high five
+@views.route('/give_highfive/<int:post_id>', methods=['POST'])
 @login_required
 def give_highfive(post_id):
+    # Retrieve the post or return a 404 error if not found
     post = ForumPost.query.get_or_404(post_id)
-    existing_highfive = HighFive.query.filter_by(user_id=current_user.id, post_id=post_id).first()
 
-    if not existing_highfive:
-        new_highfive = HighFive(user_id=current_user.id, post_id=post_id)
-        db.session.add(new_highfive)
+    # Check if the user has already given a high five to this post
+    if HighFive.query.filter_by(user_id=current_user.id, post_id=post_id).first():
+        flash('You have already given a high five to this post.', 'info')
+    else:
+        # Create and add a new HighFive entry to the database
+        highfive = HighFive(user_id=current_user.id, post_id=post_id)
+        db.session.add(highfive)
         db.session.commit()
-
-        if current_user.id != post.user_id:
+        
+        # Create a notification for the post author
+        create_notification(
+            notification_type='highfive_post',
+            recipient=post.user,  # Assuming 'post.user' is the author of the post
+            sender=current_user,
+            message=f'{current_user.username} gave your post a high five!',
+            post=post
+        )
+        
+        # Create notifications for each follower
+        for follower in current_user.followers:
             create_notification(
-                notification_type='highfive',
-                to_user=post.author,
-                from_user=current_user,
-                message=f'{current_user.first_name} gave your post a high five!',
+                notification_type='follow_highfive',
+                recipient=follower.follower_user,
+                sender=current_user,
+                message=f'{current_user.username} gave a high five to a post.',
                 post=post
             )
-    else:
-        flash('You have already given this post a high five.', 'info')
+        
+        flash('You gave a high five!', 'success')
 
     return redirect(url_for('views.post_detail', post_id=post_id))
 
