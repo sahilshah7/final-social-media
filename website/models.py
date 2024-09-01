@@ -42,10 +42,10 @@ class User(db.Model, UserMixin):
     show_suggestions = db.Column(db.Boolean, default=False)
 
     # Relationship to authored posts
-    posts = db.relationship('ForumPost', backref='author', lazy=True)
-    comments = db.relationship('Comment', backref='author', lazy=True)
-    likes = db.relationship('Like', backref='user', lazy=True)
-    highfives = db.relationship('HighFive', backref='user', lazy=True)  # New relationship
+    posts = db.relationship('ForumPost', backref='author', lazy=True, cascade='all, delete-orphan')
+    comments = db.relationship('Comment', backref='author', lazy=True, cascade='all, delete-orphan')
+    likes = db.relationship('Like', backref='user', lazy=True, cascade='all, delete-orphan')
+    highfives = db.relationship('HighFive', backref='user', lazy=True, cascade='all, delete-orphan')  # Updated relationship
 
     received_notifications = db.relationship('Notification',
                                              foreign_keys=[Notification.user_id],
@@ -61,9 +61,9 @@ class User(db.Model, UserMixin):
 
     # Followers and Following relationship
     followers = db.relationship('Follower', foreign_keys='Follower.followed_id',
-                                backref='followed', lazy='dynamic')
+                                backref='followed', lazy='dynamic', cascade='all, delete-orphan')
     following = db.relationship('Follower', foreign_keys='Follower.follower_id',
-                                backref='follower', lazy='dynamic')
+                                backref='follower', lazy='dynamic', cascade='all, delete-orphan')
 
 # Association table for saved posts
 saved_posts = db.Table('saved_posts',
@@ -75,7 +75,7 @@ saved_posts = db.Table('saved_posts',
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    forums = db.relationship('Forum', backref='category', lazy=True)
+    forums = db.relationship('Forum', backref='category', lazy=True, cascade='all, delete-orphan')
 
 # Forum model
 class Forum(db.Model):
@@ -84,7 +84,7 @@ class Forum(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    posts = db.relationship('ForumPost', backref='forum', lazy=True)
+    posts = db.relationship('ForumPost', backref='forum', lazy=True, cascade='all, delete-orphan')
 
 # ForumPost model
 class ForumPost(db.Model):
@@ -100,8 +100,8 @@ class ForumPost(db.Model):
     is_viewed_by_user = db.Column(db.Boolean, default=False)
 
     # Relationship to comments
-    comments = db.relationship('Comment', backref='post', lazy=True)
-    highfives = db.relationship('HighFive', backref='post', lazy=True)  # New relationship
+    comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
+    highfives = db.relationship('HighFive', backref='post', lazy=True, cascade='all, delete-orphan')  # Updated relationship
 
     def __repr__(self):
         return f"ForumPost('{self.title}', '{self.date_created}')"
@@ -145,7 +145,7 @@ class Like(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('forum_post.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# HighFive model (New model)
+# HighFive model
 class HighFive(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

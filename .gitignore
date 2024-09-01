@@ -41,5 +41,8 @@ venv/
 # Ignore uploaded files in development
 uploads/
 
-# Ignore staticfiles (you might want to track only certain files)
-static/
+# Ignore all files in the uploads directory
+static/uploads/*
+
+# Ensure the uploads directory itself is tracked
+!static/uploads/.gitkeep

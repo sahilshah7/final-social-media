@@ -42,13 +42,13 @@ def create_app():
     app.config['WTF_CSRF_ENABLED'] = True  # Enable CSRF protection
 
     # Configure the folder for file uploads
-    app.config['UPLOAD_FOLDER'] = 'static/uploads'
+    app.config['UPLOAD_FOLDER'] = path.join(app.static_folder, 'uploads')
 
     # Ensure the upload folder exists
     try:
-        if not path.exists('static'):
-            makedirs('static')
-        makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        # Create the 'uploads' folder inside the 'static' directory if it doesn't exist
+        if not path.exists(app.config['UPLOAD_FOLDER']):
+            makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     except OSError as e:
         print(f"Error creating directories: {e}")
 

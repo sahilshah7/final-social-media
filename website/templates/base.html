@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <title>{% block title %}VoiceBridge{% endblock %}</title>
+    {% block styles %}{% endblock %}
     <style>
         html {
             scroll-behavior: smooth;
@@ -182,6 +183,7 @@
         <a href="{{ url_for('views.account') }}" class="{% if request.path == url_for('views.account') %}active{% endif %}"><i class="fas fa-user"></i> Account</a>
         <a href="{{ url_for('views.forums') }}" class="{% if request.path == url_for('views.forums') %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>
         <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="{{ url_for('views.chat') }}" class="{% if request.path == url_for('views.chat') %}active{% endif %}"><i class="fas fa-robot"></i> AI Chat</a>
         <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
 
         <!-- Only display Log In and Sign Up if user is not authenticated -->
@@ -234,22 +236,6 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
-    <!-- CSRF Token inclusion in forms -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                const csrfToken = '{{ csrf_token() }}';
-                if (form) {
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'csrf_token';
-                    hiddenInput.value = csrfToken;
-                    form.appendChild(hiddenInput);
-                }
-            });
-        });
-    </script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

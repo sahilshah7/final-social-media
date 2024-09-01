@@ -1,160 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="VoiceBridge Notifications">
-    <title>Notifications</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        body {
-            background-color: #181818; /* Dark background */
-            color: #eaeaea; /* Light text for readability */
-            font-family: 'Roboto', sans-serif;
-        }
+{% extends "base.html" %}
 
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 280px;
-            background-color: #000;
-            padding-top: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
-        }
+{% block title %}
+Notifications
+{% endblock %}
 
-        .sidebar a {
-            display: block;
-            padding: 16px 30px;
-            color: #b3b3b3;
-            font-size: 20px;
-            text-decoration: none;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
+{% block content %}
+<div class="notifications-header">Notifications</div>
 
-        .sidebar a:hover {
-            background-color: #333;
-            transform: scale(1.02);
-            color: #fff;
-        }
+{% if notifications|length > 0 %}
+    {% for notification in notifications %}
+    <div class="notification-item">
+        <div class="notification-text">
+            <span class="notification-message">{{ notification.message }}</span>
+            <span class="notification-time">{{ notification.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+            {% if notification.post_id %}
+            <a href="{{ url_for('views.post_detail', post_id=notification.post_id) }}" class="btn btn-sm btn-info mt-2">View Post</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="notification-item">
+        <div class="notification-text">
+            <span class="notification-message">No notifications yet.</span>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
 
-        .sidebar a.active {
-            color: #4da8da;
-            font-weight: bold;
-            background-color: rgba(77, 168, 218, 0.25);
-            border-left: 5px solid #4da8da;
-        }
+{% block styles %}
+<style>
+    .notifications-header {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #4da8da;
+        text-align: center;
+    }
 
+    .notification-item {
+        padding: 15px 0;
+        margin-bottom: 10px;
+        text-align: center;
+        border-bottom: 1px solid #444;
+    }
+
+    .notification-message {
+        color: #4da8da;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .notification-time {
+        font-size: 1rem;
+        color: #b3b3b3;
+    }
+
+    .btn-primary {
+        background-color: #4da8da;
+        border-color: #4da8da;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background-color: #2c91bb;
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    @media (max-width: 768px) {
         .main-content {
-            margin-left: 300px;
-            padding: 40px;
-            color: #eaeaea;
+            margin-left: 0;
         }
-
-        .notifications-header {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #4da8da;
-            text-align: center;
-        }
-
-        .notification-item {
-            background-color: transparent;
-            padding: 15px 0;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #444;
-        }
-
-        .notification-item:hover {
-            background-color: #333;
-            transition: background-color 0.3s ease;
-        }
-
-        .notification-text {
-            color: #eaeaea;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .notification-time {
-            font-size: 0.85rem;
-            color: #b3b3b3;
-        }
-
-        .btn-primary {
-            background-color: #4da8da;
-            border-color: #4da8da;
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            background-color: #2c91bb;
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Sidebar for navigation -->
-    <div class="sidebar">
-        <a class="navbar-brand" href="/">VoiceBridge</a>
-        <a href="{{ url_for('views.account') }}" class="{% if request.path == '/account' %}active{% endif %}">Account</a>
-        <a href="{{ url_for('views.forums') }}" class="{% if request.path == '/forums' %}active{% endif %}">Forums</a>
-        <a href="{{ url_for('views.notifications') }}" class="{% if request.path == '/notifications' %}active{% endif %}">Notifications</a>
-        <a href="{{ url_for('auth.logout') }}">Logout</a>
-    </div>
-
-    <!-- Main content -->
-    <div class="main-content">
-        <div class="notifications-header">Notifications</div>
-
-        {% if notifications|length > 0 %}
-            {% for notification in notifications %}
-            <div class="notification-item">
-                <div class="notification-text">
-                    <span>{{ notification.message }}</span>
-                    <span class="notification-time">{{ notification.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
-                    {% if notification.post_id %}
-                    <a href="{{ url_for('views.post_detail', post_id=notification.post_id) }}" class="btn btn-sm btn-info mt-2">View Post</a>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="notification-item">
-                <div class="notification-text">
-                    No notifications yet.
-                </div>
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- JS and Bootstrap scripts -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
-</body>
-</html>
+    }
+</style>
+{% endblock %}

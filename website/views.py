@@ -10,10 +10,35 @@ from flask_wtf import FlaskForm
 import re
 from datetime import datetime, time
 import pytz
+from transformers import pipeline
+import stat
 
 # Blueprint setup
 views = Blueprint('views', __name__)
 logging.basicConfig(level=logging.DEBUG)
+
+generator = pipeline('text-generation', model='EleutherAI/gpt-neo-2.7B')
+
+@views.route('/chat', methods=['GET', 'POST'])
+def chat():
+    if request.method == 'POST':
+        try:
+            user_message = request.json.get('message').strip().lower()
+            print(f"Received message: {user_message}")
+
+            if not user_message:
+                return jsonify({'error': 'No message provided'}), 400
+
+            # Example response generation (replace this with GPT-Neo or other model logic)
+            response_text = "This is a placeholder response. Replace with your AI model's output."
+
+            return jsonify({'response': response_text})
+        except Exception as e:
+            print(f"Error: {e}")
+            return jsonify({'error': 'Failed to generate a response'}), 500
+
+    # If the request method is GET, render the chat page
+    return render_template('chat.html')
 
 def extract_mentions(content):
     """Extracts mentioned usernames from the content and returns the corresponding User objects."""
@@ -165,28 +190,41 @@ def post_detail(post_id):
     highfive_form = HighFiveForm()  # Form for giving high fives
 
     if request.method == 'POST':
-        content = request.form.get('content')
-
-        if not content:
-            flash('Comment cannot be empty', 'danger')
-        else:
-            if current_user.is_authenticated:
-                new_comment = Comment(content=content, user_id=current_user.id, forum_post_id=post.id)
-                db.session.add(new_comment)
-                db.session.commit()
-
-                mentioned_users = extract_mentions(content)
-                for user in mentioned_users:
-                    create_notification('mention', user, current_user, f'{current_user.username} mentioned you in a comment.', post)
-
-                followers = current_user.followers
-                for follower in followers:
-                    create_notification('comment', follower.follower_user, current_user, f'{current_user.username} commented on a post.', post)
-
-                flash('Comment added successfully!', 'success')
+        if 'content' in request.form:
+            content = request.form.get('content')
+            if not content:
+                flash('Comment cannot be empty', 'danger')
             else:
-                flash('You must be logged in to comment.', 'danger')
+                if current_user.is_authenticated:
+                    new_comment = Comment(content=content, user_id=current_user.id, forum_post_id=post.id)
+                    db.session.add(new_comment)
+                    db.session.commit()
 
+                    mentioned_users = extract_mentions(content)
+                    for user in mentioned_users:
+                        create_notification('mention', user, current_user, f'{current_user.username} mentioned you in a comment.', post)
+
+                    followers = current_user.followers
+                    for follower in followers:
+                        create_notification('comment', follower.follower_user, current_user, f'{current_user.username} commented on a post.', post)
+
+                    flash('Comment added successfully!', 'success')
+                else:
+                    flash('You must be logged in to comment.', 'danger')
+                return redirect(url_for('views.post_detail', post_id=post.id))
+
+        elif highfive_form.validate_on_submit():
+            if current_user.is_authenticated:
+                existing_highfive = HighFive.query.filter_by(user_id=current_user.id, post_id=post.id).first()
+                if existing_highfive:
+                    flash('You already gave a high five to this post.', 'info')
+                else:
+                    new_highfive = HighFive(user_id=current_user.id, post_id=post.id)
+                    db.session.add(new_highfive)
+                    db.session.commit()
+                    flash('High five given successfully!', 'success')
+            else:
+                flash('You must be logged in to give a high five.', 'danger')
             return redirect(url_for('views.post_detail', post_id=post.id))
 
     highfives = HighFive.query.filter_by(post_id=post.id).count()  # Count of high fives
@@ -201,13 +239,20 @@ def create_post(forum_id):
     if form.validate_on_submit():
         image_filename = None
         if form.image.data:
+            # Secure the filename and generate the path where the image will be saved
             image_filename = secure_filename(form.image.data.filename)
             image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+            
+            # Save the image file to the 'uploads' folder
             form.image.data.save(image_path)
 
+            # Set the file permissions to be readable by the web server
+            os.chmod(image_path, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+
+        # Create a new post in the database
         new_post = ForumPost(
-            title="Untitled",  # Default title, since the title field is removed
-            content="",  # Empty content since content field is removed
+            title="Untitled",
+            content="",
             forum_id=forum_id,
             user_id=current_user.id,
             image=image_filename  # Save image filename to the post

@@ -7,10 +7,13 @@ import pytz
 # Create the Flask app instance
 app = create_app()
 
-if __name__ == "__main__":
+def initialize_database():
+    """Ensure all tables are created and populate categories."""
     with app.app_context():
         db.create_all()  # Ensure all tables are created in the database
         populate_categories()  # Populate categories if they do not exist
 
+if __name__ == "__main__":
+    initialize_database()
     # Run the app
     app.run(debug=True)
