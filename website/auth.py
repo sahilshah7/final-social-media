@@ -13,11 +13,19 @@ auth = Blueprint('auth', __name__)
 def login():
     form = LoginForm()
     if form.validate_on_submit():
+        print("Form was submitted!")  # Debugging line
         user = User.query.filter_by(email=form.email.data).first()
         if user and check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect(url_for('views.home'))
-        flash('Invalid credentials', 'error')
+        else:
+            flash('Invalid email or password', 'error')
+    else:
+        print("Form did not validate")  # Debugging line
+        print("Email valid:", form.email.validate(form))  # Test email validation
+        print("Password valid:", form.password.validate(form))  # Test password validation
+        print(form.errors)  # Print form errors to debug
+
     return render_template('login.html', form=form)
 
 @auth.route('/logout')
@@ -44,6 +52,7 @@ def sign_up():
         name = form.name.data  # Ensure this field exists and is required
         last_name = form.last_name.data
         password = form.password.data
+        birthday=form.birthday.data
 
         # Check if the email already exists
         existing_user = User.query.filter_by(email=email).first()

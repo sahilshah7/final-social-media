@@ -39,8 +39,21 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{path.join(app.instance_path, "database.db")}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Turn off SQLAlchemy modification tracking
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or 'your_default_secret_key'
+    app.config['SECURITY_PASSWORD_SALT'] = os.getenv('SECURITY_PASSWORD_SALT', 'your_secret_salt')
     app.config['WTF_CSRF_ENABLED'] = True  # Enable CSRF protection
     app.config['UPLOAD_FOLDER'] = path.join(app.static_folder, 'uploads')
+
+    # Configure Flask-Mail for Gmail
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+
+    # Print environment variables for debugging
+    print(f"SECRET_KEY: {app.config['SECRET_KEY']}")
+    print(f"SECURITY_PASSWORD_SALT: {app.config['SECURITY_PASSWORD_SALT']}")
 
     # Set app to debug mode if environment is development
     if os.getenv('FLASK_ENV') == 'development':

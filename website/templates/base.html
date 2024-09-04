@@ -178,16 +178,18 @@
     <!-- Sidebar for navigation -->
     <div class="sidebar">
         <a class="navbar-brand" href="/">VoiceBridge</a>
-
-        <!-- Navigation links for authenticated users -->
+    
+        <!-- Navigation links -->
         <a href="{{ url_for('views.account') }}" class="{% if request.path == url_for('views.account') %}active{% endif %}"><i class="fas fa-user"></i> Account</a>
         <a href="{{ url_for('views.forums') }}" class="{% if request.path == url_for('views.forums') %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>
         <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
         <a href="{{ url_for('views.chat') }}" class="{% if request.path == url_for('views.chat') %}active{% endif %}"><i class="fas fa-robot"></i> AI Chat</a>
-        <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-
-        <!-- Only display Log In and Sign Up if user is not authenticated -->
-        {% if not current_user.is_authenticated %}
+        
+        <!-- Only display Log Out if the user is authenticated -->
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        {% else %}
+            <!-- Only display Log In and Sign Up if user is not authenticated -->
             <a href="{{ url_for('auth.login') }}" class="{% if request.path == url_for('auth.login') %}active{% endif %}"><i class="fas fa-sign-in-alt"></i> Log In</a>
             <a href="{{ url_for('auth.sign_up') }}" class="{% if request.path == url_for('auth.sign_up') %}active{% endif %}"><i class="fas fa-user-plus"></i> Sign Up</a>
         {% endif %}

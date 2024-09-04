@@ -8,46 +8,51 @@
             <h2 class="text-center">Edit Profile</h2>
             
             <!-- Profile Edit Form -->
-            <form method="POST" action="{{ url_for('views.edit_profile') }}">
+            <form method="POST" action="{{ url_for('views.edit_profile') }}" enctype="multipart/form-data">
                 {{ edit_form.hidden_tag() }}  <!-- CSRF Token -->
 
                 <!-- First Name Field -->
                 <div class="form-group">
                     <label for="first_name">First Name</label>
-                    {{ edit_form.first_name(class="form-control", id="first_name") }}
+                    {{ edit_form.first_name(class="form-control", id="first_name", placeholder="Enter your first name", aria_label="First Name") }}
                 </div>
 
                 <!-- Name Field -->
                 <div class="form-group">
                     <label for="name">Name</label>
-                    {{ edit_form.name(class="form-control", id="name") }}
+                    {{ edit_form.name(class="form-control", id="name", placeholder="Enter your name", aria_label="Name") }}
                 </div>
 
                 <!-- Email Field -->
                 <div class="form-group">
                     <label for="email">Email</label>
-                    {{ edit_form.email(class="form-control", id="email") }}
+                    {{ edit_form.email(class="form-control", id="email", placeholder="Enter your email", aria_label="Email") }}
                 </div>
 
                 <!-- Website Field -->
                 <div class="form-group">
                     <label for="website">Website</label>
-                    {{ edit_form.website(class="form-control", id="website") }}
+                    {{ edit_form.website(class="form-control", id="website", placeholder="Enter your website URL", aria_label="Website") }}
                     <small class="form-text text-muted">Visit the app on mobile to edit your website link.</small>
                 </div>
 
                 <!-- Bio Field -->
                 <div class="form-group">
                     <label for="bio">Bio</label>
-                    {{ edit_form.bio(class="form-control", id="bio", rows="3") }}
+                    {{ edit_form.bio(class="form-control", id="bio", rows="3", placeholder="Write a short bio", aria_label="Bio") }}
                     <small class="form-text text-muted">Max 150 characters.</small>
                 </div>
 
                 <!-- Gender Field -->
                 <div class="form-group">
                     <label for="gender">Gender</label>
-                    {{ edit_form.gender(class="form-control", id="gender") }}
-                    <small class="form-text text-muted">This won’t be displayed on your public profile.</small>
+                    {{ edit_form.gender(class="form-control", id="gender", placeholder="Enter your gender", aria_label="Gender") }}
+                </div>
+
+                <!-- Birthday Field -->
+                <div class="form-group">
+                    <label for="birthday">Birthday</label>
+                    {{ edit_form.birthday(class="form-control", id="birthday", placeholder="YYYY-MM-DD", aria_label="Birthday") }}
                 </div>
 
                 <!-- Submit Button -->
@@ -63,6 +68,14 @@
 <style>
     .form-group {
         margin-bottom: 20px;
+    }
+    .btn-primary {
+        background-color: #4da8da;
+        border-color: #4da8da;
+    }
+    .btn-primary:hover {
+        background-color: #3490dc;
+        border-color: #3490dc;
     }
 </style>
 {% endblock %}

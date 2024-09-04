@@ -40,30 +40,24 @@ class User(db.Model, UserMixin):
     gender = db.Column(db.String(50), nullable=True)
     website = db.Column(db.String(100), nullable=True)
     show_suggestions = db.Column(db.Boolean, default=False)
+    birthday = db.Column(db.Date, nullable=True)  # New field for birthday
 
-    # Relationship to authored posts
+    # Relationship to posts, comments, likes, and highfives
     posts = db.relationship('ForumPost', backref='author', lazy=True, cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='author', lazy=True, cascade='all, delete-orphan')
     likes = db.relationship('Like', backref='user', lazy=True, cascade='all, delete-orphan')
-    highfives = db.relationship('HighFive', backref='user', lazy=True, cascade='all, delete-orphan')  # Updated relationship
+    highfives = db.relationship('HighFive', backref='user', lazy=True, cascade='all, delete-orphan')
 
-    received_notifications = db.relationship('Notification',
-                                             foreign_keys=[Notification.user_id],
-                                             backref='recipient', lazy='dynamic',
-                                             cascade='all, delete-orphan')
-    sent_notifications = db.relationship('Notification',
-                                         foreign_keys=[Notification.from_user_id],
-                                         backref='sender', lazy='dynamic',
-                                         cascade='all, delete-orphan')
+    # Notifications
+    received_notifications = db.relationship('Notification', foreign_keys=[Notification.user_id], backref='recipient', lazy='dynamic', cascade='all, delete-orphan')
+    sent_notifications = db.relationship('Notification', foreign_keys=[Notification.from_user_id], backref='sender', lazy='dynamic', cascade='all, delete-orphan')
 
     # Many-to-many relationship for saved posts
     saved_posts = db.relationship('ForumPost', secondary='saved_posts', backref='savers')
 
     # Followers and Following relationship
-    followers = db.relationship('Follower', foreign_keys='Follower.followed_id',
-                                backref='followed', lazy='dynamic', cascade='all, delete-orphan')
-    following = db.relationship('Follower', foreign_keys='Follower.follower_id',
-                                backref='follower', lazy='dynamic', cascade='all, delete-orphan')
+    followers = db.relationship('Follower', foreign_keys='Follower.followed_id', backref='followed', lazy='dynamic', cascade='all, delete-orphan')
+    following = db.relationship('Follower', foreign_keys='Follower.follower_id', backref='follower', lazy='dynamic', cascade='all, delete-orphan')
 
 # Association table for saved posts
 saved_posts = db.Table('saved_posts',
@@ -89,54 +83,45 @@ class Forum(db.Model):
 # ForumPost model
 class ForumPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    content = db.Column(db.Text, nullable=True)  # Content is now optional for photo posts
-    image = db.Column(db.String(150), nullable=True)  # New field for storing image filename
+    title = db.Column(db.String(100), nullable=True)
+    content = db.Column(db.Text, nullable=True)
+    image = db.Column(db.String(120), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     forum_id = db.Column(db.Integer, db.ForeignKey('forum.id'), nullable=False)
-    date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
     upvotes = db.Column(db.Integer, default=0)
     downvotes = db.Column(db.Integer, default=0)
     is_viewed_by_user = db.Column(db.Boolean, default=False)
 
-    # Relationship to comments
+    # Relationship to comments and highfives
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')
-    highfives = db.relationship('HighFive', backref='post', lazy=True)  # Check this line
+    highfives = db.relationship('HighFive', backref='post', lazy=True, cascade='all, delete-orphan')
+
     def __repr__(self):
         return f"ForumPost('{self.title}', '{self.date_created}')"
-
-    def upvote_count(self):
-        return self.upvotes
-
-    def downvote_count(self):
-        return self.downvotes
-
-    def total_votes(self):
-        return self.upvotes - self.downvotes
 
 # Upvote model
 class Upvote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('forum_post.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Downvote model
 class Downvote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('forum_post.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Comment model
-class Comment(db.Model):  # Retaining the Comment model
+class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     forum_post_id = db.Column(db.Integer, db.ForeignKey('forum_post.id'), nullable=False)
-    date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
-    user = db.relationship('User', backref=db.backref('user_comments', lazy=True))
-        
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Like model
 class Like(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -147,9 +132,9 @@ class Like(db.Model):
 # HighFive model
 class HighFive(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    post_id = db.Column(db.Integer, db.ForeignKey('forum_post.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('forum_post.id', ondelete='CASCADE'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Follower model
 class Follower(db.Model):

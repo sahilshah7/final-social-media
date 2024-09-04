@@ -1,13 +1,13 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, SubmitField, BooleanField, TextAreaField
+from wtforms import StringField, PasswordField, SelectField, SubmitField, BooleanField, TextAreaField, DateField
 from wtforms.validators import InputRequired, Length, Email, EqualTo, DataRequired, Optional, URL
 from flask_wtf.file import FileField, FileAllowed
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[InputRequired(), Email(), Length(max=150)])
-    password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=150)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
-    submit = SubmitField('Login')
+    submit = SubmitField('Log In')
 
 class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -18,15 +18,10 @@ class RegistrationForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
+    birthday = DateField('Birthday', format='%Y-%m-%d', validators=[DataRequired()])
+
 
 class PostForm(FlaskForm):
-    title = StringField('Title', validators=[
-        DataRequired(),
-        Length(max=100, message="Title cannot exceed 100 characters.")
-    ])
-    content = TextAreaField('Content', validators=[
-        Length(max=500, message="Content cannot exceed 500 characters.")
-    ])
     image = FileField('Choose an Image', validators=[
         FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')
     ])
@@ -47,6 +42,7 @@ class EditAccountForm(FlaskForm):
     bio = TextAreaField('Bio', validators=[Optional(), Length(max=150)])
     gender = StringField('Gender', validators=[Optional(), Length(max=50)])
     website = StringField('Website', validators=[Optional(), URL(), Length(max=100)])
+    birthday = DateField('Birthday', format='%Y-%m-%d', validators=[Optional()])
     submit = SubmitField('Save Changes')
 
 class DeleteAccountForm(FlaskForm):

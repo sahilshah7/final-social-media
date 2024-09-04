@@ -26,6 +26,9 @@
                 </button>
             </div>
         </div>
+
+        <!-- Display user's birthday -->
+        <p class="text-light"><strong>Birthday:</strong> {{ user.birthday.strftime('%B %d, %Y') if user.birthday else 'Not provided' }}</p>
         
         <!-- Follow/Unfollow Button -->
         <form method="POST" action="{{ url_for('views.follow', user_id=user.id) }}" class="mt-2">

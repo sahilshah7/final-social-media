@@ -295,8 +295,8 @@ def create_post(forum_id):
                 return redirect(url_for('views.create_post', forum_id=forum_id))
 
         new_post = ForumPost(
-            title=form.title.data,
-            content=form.content.data,
+            title="Untitled",  # Default value for title
+            content="",        # Default value for content
             forum_id=forum_id,
             user_id=current_user.id,
             image=image_filename
@@ -355,15 +355,25 @@ def comment_post(post_id):
 def delete_post(post_id):
     post = ForumPost.query.get_or_404(post_id)
 
-    if post.user_id == current_user.id:
-        db.session.delete(post)
-        db.session.commit()
-        flash('Post deleted successfully', 'success')
-        return redirect(url_for('views.forums'))
-    else:
+    # Check if the current user is the owner of the post
+    if post.user_id != current_user.id:
         flash('You do not have permission to delete this post', 'danger')
         return redirect(url_for('views.post_detail', post_id=post_id))
     
+    try:
+        # Delete the post and commit the change
+        db.session.delete(post)
+        db.session.commit()
+        flash('Post deleted successfully', 'success')
+        # Redirect to the forum the post was in
+        return redirect(url_for('views.forum_detail', forum_id=post.forum_id))
+    
+    except Exception as e:
+        # Handle any errors that might occur during the deletion process
+        db.session.rollback()
+        flash(f'Error deleting post: {str(e)}', 'danger')
+        return redirect(url_for('views.post_detail', post_id=post_id))
+     
 @views.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
@@ -446,6 +456,7 @@ def edit_profile():
         current_user.bio = edit_form.bio.data
         current_user.gender = edit_form.gender.data
         current_user.website = edit_form.website.data
+        current_user.birthday = edit_form.birthday.data  # Handle the birthday field
 
         # Commit changes to the database
         db.session.commit()
@@ -453,6 +464,11 @@ def edit_profile():
         # Flash success message and redirect to the profile page
         flash('Your profile has been updated successfully!', 'success')
         return redirect(url_for('views.account'))
+    else:
+        # If form is not validated, print errors for debugging
+        for field, errors in edit_form.errors.items():
+            for error in errors:
+                flash(f"Error in {getattr(edit_form, field).label.text}: {error}", 'danger')
 
     # Pre-fill form with current user data when GET request
     if request.method == 'GET':
@@ -462,6 +478,7 @@ def edit_profile():
         edit_form.bio.data = current_user.bio
         edit_form.gender.data = current_user.gender
         edit_form.website.data = current_user.website
+        edit_form.birthday.data = current_user.birthday  # Pre-fill the birthday field
 
     return render_template('edit_profile.html', edit_form=edit_form)
 
@@ -595,7 +612,6 @@ def public_account(user_id):
 @views.route('/give_highfive/<int:post_id>', methods=['POST'])
 @login_required
 def give_highfive(post_id):
-    # Retrieve the post or return a 404 error if not found
     post = ForumPost.query.get_or_404(post_id)
 
     # Check if the user has already given a high five to this post
@@ -607,25 +623,15 @@ def give_highfive(post_id):
         db.session.add(highfive)
         db.session.commit()
         
-        # Create a notification for the post author
+        # Create a notification for the post author (now accessible via post.user)
         create_notification(
             notification_type='highfive_post',
-            recipient=post.user,  # Assuming 'post.user' is the author of the post
+            recipient=post.user,  # This will now work
             sender=current_user,
             message=f'{current_user.username} gave your post a high five!',
             post=post
         )
-        
-        # Create notifications for each follower
-        for follower in current_user.followers:
-            create_notification(
-                notification_type='follow_highfive',
-                recipient=follower.follower_user,
-                sender=current_user,
-                message=f'{current_user.username} gave a high five to a post.',
-                post=post
-            )
-        
+
         flash('You gave a high five!', 'success')
 
     return redirect(url_for('views.post_detail', post_id=post_id))

@@ -14,6 +14,15 @@
         <div class="col">
             <h1 class="username">{{ current_user.first_name }} {{ current_user.last_name }}</h1>
             <p>{{ current_user.bio or 'No bio added yet.' }}</p>
+
+            <p><strong>Birthday:</strong> 
+                {% if current_user.birthday %}
+                {{ current_user.birthday.strftime('%B %d, %Y') }}
+                {% else %}
+                Not specified
+                {% endif %}
+            </p>
+            
             <p><strong>Website:</strong> 
                 {% if current_user.website %}
                 <a href="{{ current_user.website }}" target="_blank">{{ current_user.website }}</a>
