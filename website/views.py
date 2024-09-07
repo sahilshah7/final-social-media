@@ -2,22 +2,175 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from flask_login import login_required, current_user
 from .models import ForumPost, Comment, Like, User, Follower, Category, Forum, Notification, Upvote, Downvote, HighFive
 from .forms import PostForm, CommentForm, EditAccountForm, DeleteAccountForm, FollowForm, EditProfileForm, HighFiveForm
-from . import db
-import os
+from . import db, mail  # Import mail from your app
+import os  # Import os module
 from werkzeug.utils import secure_filename
 import logging
 from flask_wtf import FlaskForm
 import re
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import pytz
+from pytz import timezone
 from transformers import pipeline
 import stat
+import requests
+from config import ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET, ZOOM_OAUTH_TOKEN_URL, ZOOM_API_URL
+from base64 import b64encode
+import json
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask_mail import Message
+from website import mail  # Import app and mail
+
+# Initialize the scheduler (only do this once)
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 # Blueprint setup
 views = Blueprint('views', __name__)
 logging.basicConfig(level=logging.DEBUG)
-
+meeting_bp = Blueprint('meeting_bp', __name__)  # Define meeting_bp for meeting-related routes
 generator = pipeline('text-generation', model='EleutherAI/gpt-neo-2.7B')
+scheduler_bp = Blueprint('scheduler_bp', __name__)
+
+ZOOM_CLIENT_ID = '7vHLopUdQSaZ7BQpPfO5gQ'
+ZOOM_CLIENT_SECRET = 'RfWYB1ZMSA7Kk6BXSe8SiZPxqc5I7hWg'
+ZOOM_ACCOUNT_ID = 'ZObsKZODREywXjz3MLPixQ'  # Server-to-Server OAuth apps require the account ID
+ZOOM_AUTH_URL = "https://zoom.us/oauth/token"
+ZOOM_API_URL = "https://api.zoom.us/v2/users/me/meetings"
+
+# Function to send meeting reminder
+def send_meeting_reminder(email, meeting_time, zoom_link):
+    msg = Message("Upcoming Zoom Class Reminder", recipients=[email])
+    msg.body = f"Reminder: Your class will start at {meeting_time}. Here's the Zoom link: {zoom_link}"
+    mail.send(msg)
+
+# Function to schedule reminders 1 hour before the meeting
+def schedule_meeting_reminders(email, meeting_time, zoom_link):
+    run_time = meeting_time - timedelta(hours=1)
+    scheduler.add_job(
+        func=send_meeting_reminder,
+        trigger='date',
+        run_date=run_time,  # 1 hour before the meeting
+        args=[email, meeting_time, zoom_link]  # Arguments for the reminder function
+    )
+
+# Example route to trigger scheduling the reminder
+@views.route('/schedule_reminder')
+def schedule_reminder():
+    email = "recipient@example.com"
+    meeting_time = datetime(2024, 9, 10, 10, 0, 0)  # Example meeting time (YYYY, MM, DD, HH, MM, SS)
+    zoom_link = "https://zoom.us/j/your_zoom_meeting_link"
+    
+    # Schedule the reminder
+    schedule_meeting_reminders(email, meeting_time, zoom_link)
+    
+    return "Reminder scheduled!"
+
+def get_access_token():
+    url = ZOOM_AUTH_URL
+    auth_header = b64encode(f"{ZOOM_CLIENT_ID}:{ZOOM_CLIENT_SECRET}".encode()).decode("utf-8")
+    
+    headers = {
+        "Authorization": f"Basic {auth_header}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    
+    data = {
+        "grant_type": "account_credentials",  # Correct grant type for Server-to-Server OAuth
+        "account_id": ZOOM_ACCOUNT_ID
+    }
+    
+    response = requests.post(url, headers=headers, data=data)
+    
+    if response.status_code == 200:
+        return response.json()['access_token']  # Extract the access token
+    else:
+        raise Exception(f"Failed to get access token: {response.text}")
+
+def schedule_zoom_meeting(access_token, topic, start_time, duration_minutes):
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+
+    meeting_data = {
+        "topic": topic,
+        "type": 2,  # Scheduled meeting
+        "start_time": start_time,  # In ISO8601 format: YYYY-MM-DDTHH:MM:SSZ
+        "duration": duration_minutes,
+        "timezone": "UTC",
+        "settings": {
+            "join_before_host": True,
+            "auto_recording": "cloud"
+        }
+    }
+
+    response = requests.post(ZOOM_API_URL, headers=headers, json=meeting_data)
+
+    if response.status_code == 201:
+        print(f"Meeting scheduled successfully: {response.json().get('join_url')}")
+        return response.json().get('join_url')  # Return Zoom join URL
+    else:
+        print(f"Error scheduling meeting: {response.text}")
+        return None
+
+
+# Check if the current time is within the allowed Zoom meeting window
+def is_within_zoom_window():
+    pst = pytz.timezone('America/Los_Angeles')
+    now = datetime.now(pst).time()
+    start_time = time(18, 0)  # 4:00 PM
+    end_time = time(18, 40)   # 5:40 PM
+    return start_time <= now <= end_time
+
+
+# Function to schedule weekly Zoom meetings (morning and evening)
+def schedule_weekly_meetings():
+    scheduler = BackgroundScheduler()
+
+    # Schedule morning meeting every Monday at 9:00 AM (Los Angeles time)
+    scheduler.add_job(
+        func=lambda: schedule_zoom_meeting(get_access_token(), "Morning Class", "2024-09-05T16:00:00Z", 60),
+        trigger='cron',
+        day_of_week='fri',  # Adjust for the desired day
+        hour=9, minute=0,  # Morning meeting at 9:00 AM
+        timezone=pytz.timezone('America/Los_Angeles')
+    )
+
+    # Schedule evening meeting every Monday at 6:00 PM (Los Angeles time)
+    scheduler.add_job(
+        func=lambda: schedule_zoom_meeting(get_access_token(), "Evening Class", "2024-09-05T16:00:00Z", 60),
+        trigger='cron',
+        day_of_week='fri',  # Adjust for the desired day
+        hour=17, minute=36,  # Evening meeting at 6:00 PM
+        timezone=pytz.timezone('America/Los_Angeles')
+    )
+
+    scheduler.start()
+
+# Home route to check for Zoom window and redirect if needed
+@views.route('/')
+def home():
+    if is_within_zoom_window():
+        flash("Meeting is live, redirecting to Zoom...", "info")
+        try:
+            access_token = get_access_token()
+            zoom_meeting_url = schedule_zoom_meeting(access_token, "Meeting Topic", "2024-09-05T16:00:00Z", 40)
+            if zoom_meeting_url:
+                return redirect(zoom_meeting_url)
+            else:
+                flash("Error scheduling the Zoom meeting. Check logs for details.", "danger")
+        except Exception as e:
+            flash(f"Error: {str(e)}", "danger")
+            print(f"Exception occurred: {str(e)}")  # Log the exception
+    else:
+        flash("Meeting is not within the allowed time window.", "danger")
+    return render_template('home.html')
+
+# Meeting room route
+@meeting_bp.route('/meeting_room')
+def meeting_room():
+    return render_template('meeting_room.html')
 
 @views.route('/chat', methods=['GET', 'POST'])
 def chat():
@@ -53,9 +206,6 @@ def test_time():
     now = datetime.now(pytz.timezone('America/Los_Angeles')).time()
     return f"Current time: {now}, Access allowed: {access_allowed}"
 
-from datetime import datetime, time
-import pytz
-
 def is_within_online_window():
     """Check if the current time is within the allowed online window."""
     # Define timezone
@@ -77,28 +227,6 @@ def is_within_online_window():
     is_within_window = start_time <= now <= end_time
     print(f"Is within window: {is_within_window}")  # Debugging statement
     return is_within_window
-
-@views.route('/')
-def home():
-    """Render the home page if within the allowed time window."""
-    access_allowed = is_within_online_window()
-    if not access_allowed:
-        return redirect(url_for('views.access_restricted'))
-
-    # Retrieve the 5 most recent posts
-    suggested_posts = ForumPost.query.order_by(ForumPost.date_created.desc()).limit(5).all()
-    # Retrieve the first 5 users (or adjust as needed)
-    suggested_accounts = User.query.limit(5).all()
-    # Check if all suggested posts have been viewed by the user
-    all_viewed = all(post.is_viewed_by_user for post in suggested_posts)
-    
-    # Render the home page with the posts, accounts, and viewed status
-    return render_template(
-        'home.html', 
-        suggested_posts=suggested_posts, 
-        suggested_accounts=suggested_accounts, 
-        all_viewed=all_viewed
-    )
 
 @views.route('/access-restricted')
 def access_restricted():

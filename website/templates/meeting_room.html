@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoom Meeting Room</title>
+    <style>
+        /* Add some basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 20px;
+        }
+        #timer {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #youtube-video {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Zoom Meeting Room</h1>
+
+    <!-- Simple visual timer for 2-minute intervals -->
+    <div id="timer" style="font-size: 24px;">02:00</div>
+
+    <!-- Embed YouTube video -->
+    <iframe id="youtube-video" width="560" height="315" src="https://www.youtube.com/embed/your_video_id?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+    <!-- Timer Script -->
+    <script>
+        function startTimer(duration, display) {
+            var timer = duration, minutes, seconds;
+            setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    timer = duration;  // Reset the timer
+                }
+            }, 1000);
+        }
+
+        window.onload = function () {
+            var twoMinutes = 60 * 2,  // 2-minute countdown
+                display = document.querySelector('#timer');
+            startTimer(twoMinutes, display);
+        };
+    </script>
+
+    <!-- YouTube Video Auto-Stop Script -->
+    <script>
+        // Automatically stop video after 20 minutes
+        setTimeout(function() {
+            document.getElementById('youtube-video').src = '';  // Stop the video after 20 minutes
+        }, 20 * 60 * 1000);  // 20 minutes in milliseconds
+    </script>
+
+</body>
+</html>

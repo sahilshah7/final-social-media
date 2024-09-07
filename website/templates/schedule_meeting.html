@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Meeting</title>
+</head>
+<body>
+    <h1>Schedule a Zoom Meeting</h1>
+    <form action="{{ url_for('scheduler_bp.schedule_meeting') }}" method="POST">
+        <label for="topic">Meeting Topic:</label>
+        <input type="text" id="topic" name="topic" required>
+
+        <label for="duration">Duration (minutes):</label>
+        <input type="number" id="duration" name="duration" required>
+
+        <button type="submit">Schedule Meeting</button>
+    </form>
+</body>
+</html>
