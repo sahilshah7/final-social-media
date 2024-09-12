@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="VoiceBridge - Connect and Share Ideas">
-    <meta name="keywords" content="VoiceBridge, Forums, Community, Social Network">
-    <meta name="author" content="VoiceBridge Team">
-    <meta property="og:title" content="VoiceBridge">
-    <meta property="og:description" content="Connect and Share Ideas on VoiceBridge">
+    <meta name="description" content="SpotLight - Connect and Share Ideas">
+    <meta name="keywords" content="SpotLight, Forums, Community, Social Network">
+    <meta name="author" content="SpotLight Team">
+    <meta property="og:title" content="SpotLight">
+    <meta property="og:description" content="Connect and Share Ideas on SpotLight">
     <meta property="og:image" content="{{ url_for('static', filename='images/og_image.png') }}">
-    <meta property="og:url" content="https://www.voicebridge.com">
+    <meta property="og:url" content="https://www.spotlight.com">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <title>{% block title %}VoiceBridge{% endblock %}</title>
+    <title>{% block title %}SpotLight{% endblock %}</title>
     {% block styles %}{% endblock %}
     <style>
         html {
@@ -51,13 +51,20 @@
         }
 
         .navbar-brand {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: bold;
             color: #4da8da;
             padding: 15px;
             margin-bottom: 30px;
             text-align: left;
             padding-left: 20px;
+            display: flex;
+            align-items: center;  /* Center align logo and text */
+        }
+
+        .navbar-brand img {
+            max-height: 50px; /* Adjust the logo size */
+            margin-right: 10px; /* Add space between logo and text */
         }
 
         .sidebar a {
@@ -177,21 +184,33 @@
 <body>
     <!-- Sidebar for navigation -->
     <div class="sidebar">
-        <a class="navbar-brand" href="/">VoiceBridge</a>
+        <a class="navbar-brand" href="/">
+            <!-- Add the logo next to the text -->
+            <img src="{{ url_for('static', filename='images/Black and Green Simple Online Shop Website Logo.png') }}" alt="SpotLight Logo">
+            SpotLight
+        </a>
     
         <!-- Navigation links -->
         <a href="{{ url_for('views.account') }}" class="{% if request.path == url_for('views.account') %}active{% endif %}"><i class="fas fa-user"></i> Account</a>
-        <a href="{{ url_for('views.forums') }}" class="{% if request.path == url_for('views.forums') %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>
-        <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="{{ url_for('views.forum_detail', forum_id=1) }}" class="{% if request.path == url_for('views.forum_detail', forum_id=1) %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>        <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
         <a href="{{ url_for('views.chat') }}" class="{% if request.path == url_for('views.chat') %}active{% endif %}"><i class="fas fa-robot"></i> AI Chat</a>
         
         <!-- Only display Log Out if the user is authenticated -->
+        <!-- If the user is authenticated, always show the logout option -->
         {% if current_user.is_authenticated %}
             <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <!-- Optionally, you can show a message if the site is closed -->
+            {% if not access_allowed %}
+                <!-- You could show a message here when the site is closed -->
+            {% endif %}
+
+            {% if current_user.email == "sahilshah07@gmail.com" %}
+                <!-- Show Sign Up link only for the admin (you) -->
+                <a href="{{ url_for('auth.sign_up') }}" class="nav-link">Sign Up</a>
+            {% endif %}
         {% else %}
-            <!-- Only display Log In and Sign Up if user is not authenticated -->
-            <a href="{{ url_for('auth.login') }}" class="{% if request.path == url_for('auth.login') %}active{% endif %}"><i class="fas fa-sign-in-alt"></i> Log In</a>
-            <a href="{{ url_for('auth.sign_up') }}" class="{% if request.path == url_for('auth.sign_up') %}active{% endif %}"><i class="fas fa-user-plus"></i> Sign Up</a>
+            <!-- Show login option if the user is not authenticated -->
+            <a href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
         {% endif %}
     </div>
 

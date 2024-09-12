@@ -36,6 +36,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     profile_picture = db.Column(db.String(150), nullable=True)
+    last_login = db.Column(db.DateTime, nullable=True)  # Make sure this is being updated when users log in
     bio = db.Column(db.Text, nullable=True)
     gender = db.Column(db.String(50), nullable=True)
     website = db.Column(db.String(100), nullable=True)
@@ -88,7 +89,7 @@ class ForumPost(db.Model):
     image = db.Column(db.String(120), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     forum_id = db.Column(db.Integer, db.ForeignKey('forum.id'), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)  # Make sure this is present
     upvotes = db.Column(db.Integer, default=0)
     downvotes = db.Column(db.Integer, default=0)
     is_viewed_by_user = db.Column(db.Boolean, default=False)

@@ -9,6 +9,8 @@ from sqlalchemy import MetaData
 import os
 from dotenv import load_dotenv
 import logging
+import pytz
+from datetime import datetime, time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -100,18 +102,25 @@ def create_app():
     # Register blueprints
     from .views import views
     from .auth import auth
-    from .views import scheduler_bp  # Blueprint for Zoom scheduling
-    from .views import meeting_bp    # Blueprint for meeting rooms
 
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/auth')
-    app.register_blueprint(scheduler_bp, url_prefix='/scheduler')
-    app.register_blueprint(meeting_bp, url_prefix='/meeting')
-
-    # Initialize the database (create tables if they don't exist)
-    with app.app_context():
-        if not path.exists(path.join(app.instance_path, 'database.db')):
-            db.create_all()  # Creates the database tables only if they don't exist
-            logging.info('Created the database!')
 
     return app
+
+# Create the Flask app instance
+app = create_app()
+
+def initialize_database():
+    """Ensure all tables are created and populate categories."""
+    with app.app_context():
+        db.create_all()  # Ensure all tables are created in the database
+        from .views import populate_categories
+        populate_categories()  # Populate categories if they do not exist
+
+if __name__ == "__main__":
+    initialize_database()  # Ensure database and categories are initialized
+    from .views import schedule_weekly_meetings
+    schedule_weekly_meetings(app)  # Schedule weekly meetings with app instance
+    # Run the Flask app on port 5001 to avoid conflicts
+    app.run(debug=True, port=5001)  # Use a different port

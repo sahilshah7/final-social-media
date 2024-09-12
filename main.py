@@ -1,19 +1,23 @@
-from flask import Flask
 from website import create_app, db
-from website.views import populate_categories
-from datetime import datetime, time
-import pytz
+from website.views import populate_categories, schedule_weekly_meetings
+from apscheduler.schedulers.background import BackgroundScheduler
 
-# Create the Flask app instance
 app = create_app()
 
 def initialize_database():
-    """Ensure all tables are created and populate categories."""
     with app.app_context():
-        db.create_all()  # Ensure all tables are created in the database
-        populate_categories()  # Populate categories if they do not exist
+        db.create_all()
+        populate_categories()
 
 if __name__ == "__main__":
     initialize_database()
-    # Run the app
-    app.run(debug=True)
+    
+    # Start the scheduler
+    scheduler = BackgroundScheduler()
+    scheduler.start()
+    
+    # Schedule the weekly meetings
+    with app.app_context():
+        schedule_weekly_meetings(app)
+    
+    app.run(debug=True, port=5001)

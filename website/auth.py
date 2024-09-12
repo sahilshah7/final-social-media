@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from .models import User
@@ -43,16 +43,20 @@ from werkzeug.security import generate_password_hash
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
+    # Only the admin can access this route
+    if not (current_user.is_authenticated and current_user.email == "sahilshah07@gmail.com"):
+        return abort(403)  # Restrict access for non-admin users
+
     form = RegistrationForm()
 
     if form.validate_on_submit():
         email = form.email.data
         username = form.username.data
         first_name = form.first_name.data
-        name = form.name.data  # Ensure this field exists and is required
+        name = form.name.data  # Ensure this field exists in the form
         last_name = form.last_name.data
         password = form.password.data
-        birthday=form.birthday.data
+        birthday = form.birthday.data
 
         # Check if the email already exists
         existing_user = User.query.filter_by(email=email).first()
@@ -73,6 +77,7 @@ def sign_up():
             first_name=first_name,
             name=name,  # The name field is used here
             last_name=last_name,
+            birthday=birthday,  # Make sure to add birthday field to the user
             password=generate_password_hash(password, method='pbkdf2:sha256')
         )
 
