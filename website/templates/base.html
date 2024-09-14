@@ -45,11 +45,7 @@
             transition: transform 0.3s ease;
         }
 
-        /* Hide sidebar and content if access is restricted */
-        .sidebar.hidden, .main-content.hidden {
-            display: none;
-        }
-
+        /* Navbar brand */
         .navbar-brand {
             font-size: 2.5rem;
             font-weight: bold;
@@ -59,12 +55,12 @@
             text-align: left;
             padding-left: 20px;
             display: flex;
-            align-items: center;  /* Center align logo and text */
+            align-items: center;
         }
 
         .navbar-brand img {
-            max-height: 50px; /* Adjust the logo size */
-            margin-right: 10px; /* Add space between logo and text */
+            max-height: 50px;
+            margin-right: 10px;
         }
 
         .sidebar a {
@@ -170,7 +166,7 @@
             padding: 10px;
             text-align: center;
             font-size: 0.75rem; /* Tiny font size */
-            position: fixed; /* Fixed position at the bottom */
+            position: fixed;
             left: 0;
             bottom: 0;
             width: 100%;
@@ -179,37 +175,57 @@
         .tiny-footer p {
             margin: 0;
         }
+
+        /* Media queries for mobile devices */
+        @media (max-width: 768px) {
+            /* Make the sidebar disappear on smaller screens */
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                display: block;
+                box-shadow: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            /* Adjust navigation links for mobile */
+            .sidebar a {
+                padding: 12px 15px;
+                font-size: 16px;
+            }
+
+            /* Tiny footer adjustments */
+            .tiny-footer {
+                font-size: 0.65rem;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- Sidebar for navigation -->
     <div class="sidebar">
         <a class="navbar-brand" href="/">
-            <!-- Add the logo next to the text -->
             <img src="{{ url_for('static', filename='images/Black and Green Simple Online Shop Website Logo.png') }}" alt="SpotLight Logo">
             SpotLight
         </a>
     
         <!-- Navigation links -->
         <a href="{{ url_for('views.account') }}" class="{% if request.path == url_for('views.account') %}active{% endif %}"><i class="fas fa-user"></i> Account</a>
-        <a href="{{ url_for('views.forum_detail', forum_id=1) }}" class="{% if request.path == url_for('views.forum_detail', forum_id=1) %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>        <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
+        <a href="{{ url_for('views.forum_detail', forum_id=1) }}" class="{% if request.path == url_for('views.forum_detail', forum_id=1) %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>
+        <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
         <a href="{{ url_for('views.chat') }}" class="{% if request.path == url_for('views.chat') %}active{% endif %}"><i class="fas fa-robot"></i> AI Chat</a>
         
         <!-- Only display Log Out if the user is authenticated -->
-        <!-- If the user is authenticated, always show the logout option -->
         {% if current_user.is_authenticated %}
             <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            <!-- Optionally, you can show a message if the site is closed -->
-            {% if not access_allowed %}
-                <!-- You could show a message here when the site is closed -->
-            {% endif %}
-
             {% if current_user.email == "sahilshah07@gmail.com" %}
-                <!-- Show Sign Up link only for the admin (you) -->
                 <a href="{{ url_for('auth.sign_up') }}" class="nav-link">Sign Up</a>
             {% endif %}
         {% else %}
-            <!-- Show login option if the user is not authenticated -->
             <a href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
         {% endif %}
     </div>

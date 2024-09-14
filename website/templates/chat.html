@@ -28,9 +28,9 @@ AI Chat
             return;
         }
 
-        // Display the user's message immediately
+        // Display user's message
         messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #4da8da;">You: ${input}</p>`;
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;  // Auto-scroll to the bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
         try {
             const response = await fetch('{{ url_for("views.chat") }}', {
@@ -51,10 +51,13 @@ AI Chat
                 console.error("Error from backend:", data.error);
                 messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #ff4d4d;">Error: ${data.error}</p>`;
             } else {
-                messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #f0f0f0;">AI: ${data.response}</p>`;
+                // Simulate typing delay for realism
+                setTimeout(() => {
+                    messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #f0f0f0;">AI: ${data.response}</p>`;
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 1000);  // 1 second delay for realism
             }
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;  // Auto-scroll to the bottom
-            document.getElementById('user-input').value = ''; // Clear the input field
+            document.getElementById('user-input').value = ''; // Clear input
         } catch (error) {
             console.error("Fetch error:", error);
             messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #ff4d4d;">Fetch error: ${error}</p>`;

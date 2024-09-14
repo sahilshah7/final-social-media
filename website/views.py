@@ -20,8 +20,9 @@ import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mail import Message
 from website import mail  # Import app and mail
+from transformers import AutoModelForCausalLM, AutoTokenizer, BlenderbotTokenizer, BlenderbotForConditionalGeneration
+import torch
 
-# Initialize the scheduler (only do this once)
 scheduler = BackgroundScheduler()
 scheduler.start()
 
@@ -37,6 +38,50 @@ ZOOM_CLIENT_SECRET = 'RfWYB1ZMSA7Kk6BXSe8SiZPxqc5I7hWg'
 ZOOM_ACCOUNT_ID = 'ZObsKZODREywXjz3MLPixQ'  # Server-to-Server OAuth apps require the account ID
 ZOOM_AUTH_URL = "https://zoom.us/oauth/token"
 ZOOM_API_URL = "https://api.zoom.us/v2/users/me/meetings"
+
+model_id = "facebook/blenderbot-400M-distill"
+tokenizer = BlenderbotTokenizer.from_pretrained(model_id)
+model = BlenderbotForConditionalGeneration.from_pretrained(model_id)
+
+from flask import render_template, request, jsonify, redirect, url_for
+from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
+from better_profanity import profanity
+
+# Load the BlenderBot model and tokenizer
+model_id = "facebook/blenderbot-400M-distill"
+tokenizer = BlenderbotTokenizer.from_pretrained(model_id)
+model = BlenderbotForConditionalGeneration.from_pretrained(model_id)
+
+# Load profanity filter
+profanity.load_censor_words()
+
+@views.route('/chat', methods=['GET', 'POST'])
+def chat():
+    if not is_within_online_window():
+        return redirect(url_for('views.access_restricted'))
+
+    if request.method == 'POST':
+        try:
+            user_message = request.json.get('message').strip().lower()
+            if not user_message:
+                return jsonify({'error': 'No message provided'}), 400
+
+            # Tokenize the input message
+            inputs = tokenizer(user_message, return_tensors="pt")
+
+            # Generate response using BlenderBot
+            reply_ids = model.generate(**inputs)
+            response_text = tokenizer.decode(reply_ids[0], skip_special_tokens=True)
+
+            # Filter inappropriate content using better_profanity
+            filtered_response = profanity.censor(response_text)
+
+            return jsonify({'response': filtered_response})
+        except Exception as e:
+            print(f"Error: {e}")
+            return jsonify({'error': f'Failed to generate a response: {str(e)}'}), 500
+
+    return render_template('chat.html')
 
 def send_zoom_reminder(app, zoom_meeting_url, meeting_time):
     print("Sending reminder emails...")  # Check if this prints out
@@ -231,31 +276,6 @@ def home():
 @meeting_bp.route('/meeting_room')
 def meeting_room():
     return render_template('meeting_room.html')
-
-@views.route('/chat', methods=['GET', 'POST'])
-def chat():
-    # Check if the current time is within the allowed time window
-    if not is_within_online_window():
-        return redirect(url_for('views.access_restricted'))
-
-    if request.method == 'POST':
-        try:
-            user_message = request.json.get('message').strip().lower()
-            print(f"Received message: {user_message}")
-
-            if not user_message:
-                return jsonify({'error': 'No message provided'}), 400
-
-            # Example response generation (replace this with GPT-Neo or other model logic)
-            response_text = "This is a placeholder response. Replace with your AI model's output."
-
-            return jsonify({'response': response_text})
-        except Exception as e:
-            print(f"Error: {e}")
-            return jsonify({'error': 'Failed to generate a response'}), 500
-
-    # If the request method is GET, render the chat page
-    return render_template('chat.html')
 
 def extract_mentions(content):
     """Extracts mentioned usernames from the content and returns the corresponding User objects."""

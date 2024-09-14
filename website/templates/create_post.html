@@ -4,8 +4,8 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-center">Create a New Post in {{ forum.title }}</h1>
-    <!-- Centered form -->
+    <h1 class="text-center">Create a Post</h1>
+        <!-- Centered form -->
     <div class="d-flex justify-content-center">
         <form method="POST" action="{{ url_for('views.create_post', forum_id=forum.id) }}" enctype="multipart/form-data" class="text-center w-100" style="max-width: 500px;">
             {{ form.hidden_tag() }}
