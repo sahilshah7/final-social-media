@@ -17,9 +17,9 @@
 
     <!-- Posts Section -->
     <div class="posts-section mt-4">
-        {% if forum_posts | length > 0 %}
+        {% if forum_posts.items | length > 0 %}
         <ul class="list-group">
-            {% for post in forum_posts %}
+            {% for post in forum_posts.items %}
             <li class="list-group-item">
                 <!-- Post Header with Author Info -->
                 <div class="d-flex align-items-center mb-2">
@@ -33,7 +33,7 @@
                 {% if post.image %}
                 <div class="post-image-container mb-3">
                     <a href="{{ url_for('views.post_detail', post_id=post.id) }}">
-                        <img src="{{ url_for('static', filename='uploads/' + post.image) }}" class="img-fluid rounded post-image-preview" alt="Post Image">
+                        <img src="{{ url_for('static', filename='uploads/' + post.image) if post.image else 'https://via.placeholder.com/200' }}" class="img-fluid rounded post-image-preview" alt="Post Image">
                     </a>
                 </div>
                 {% endif %}
@@ -58,6 +58,34 @@
             </li>
             {% endfor %}
         </ul>
+
+        <!-- Pagination -->
+        <nav aria-label="Forum posts pagination" class="pagination-wrapper">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not forum_posts.has_prev %}disabled{% endif %}">
+                    <a class="page-link custom-page-link" href="{{ url_for('views.forum_detail', forum_id=forum.id, page=forum_posts.prev_num) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+
+                {% for page_num in forum_posts.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == forum_posts.page %}active{% endif %}">
+                            <a class="page-link custom-page-link" href="{{ url_for('views.forum_detail', forum_id=forum.id, page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                <li class="page-item {% if not forum_posts.has_next %}disabled{% endif %}">
+                    <a class="page-link custom-page-link" href="{{ url_for('views.forum_detail', forum_id=forum.id, page=forum_posts.next_num) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
         {% else %}
         <div class="alert alert-info">
             No posts available in this forum yet.
@@ -84,11 +112,6 @@
         font-size: 2.5rem;
         color: #4da8da;
         margin-top: 10px;
-    }
-
-    .forum-description {
-        color: #b3b3b3;
-        font-size: 1.2rem;
     }
 
     .btn-primary {
@@ -128,34 +151,19 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
 
-    .post-link {
-        color: #4da8da;
-        font-size: 1.3rem;
-        font-weight: bold;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
-
-    .post-link:hover {
-        color: #73c9eb;
-    }
-
-    .alert-info {
-        background-color: #2c91bb;
-        color: #fff;
-        border-radius: 6px;
-        padding: 15px;
-        transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .alert-info:hover {
-        background-color: #1f6eaa;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
     .post-avatar {
         width: 50px;
         height: 50px;
+        object-fit: cover;
+    }
+
+    .blue-ring {
+        border: 2px solid #4da8da;
+        padding: 2px;
+    }
+
+    .rounded-circle {
+        border-radius: 50%;
     }
 
     .post-author {
@@ -186,11 +194,6 @@
         font-size: 0.9rem;
     }
 
-    .post-stats .badge {
-        padding: 5px 10px;
-        border-radius: 5px;
-    }
-
     .btn-outline-light {
         border-color: #4da8da;
         color: #4da8da;
@@ -201,26 +204,97 @@
         color: #fff;
     }
 
-    .blue-ring {
-        border: 2px solid #4da8da;  /* Thinner blue border */
-        padding: 2px;  /* Adjust padding to make it fit better */
+    .alert-info {
+        background-color: #2c91bb;
+        color: #fff;
+        border-radius: 6px;
+        padding: 15px;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .rounded-circle {
-        border-radius: 50%; /* Ensures the image remains circular */
+    .alert-info:hover {
+        background-color: #1f6eaa;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    .post-avatar {
-        width: 50px;
-        height: 50px;
-        object-fit: cover; /* Ensures the image fits within the circle */
+    /* Updated Pagination styling */
+    .pagination-wrapper {
+        text-align: center;
+        position: relative;
+        margin-top: 40px;
+        width: auto;
+    }
+
+    .pagination {
+        display: inline-flex;
+        justify-content: center;
+    }
+
+    .pagination .page-item .custom-page-link {
+        background-color: #333;
+        border: 2px solid #4da8da;
+        color: #4da8da;
+        border-radius: 50%;
+        padding: 10px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        transition: background-color 0.3s ease, transform 0.2s ease, color 0.3s ease;
+    }
+
+    /* Hover effect */
+    .pagination .page-item:hover .custom-page-link {
+        background-color: #2c91bb;
+        color: #ffffff;
+        transform: scale(1.05);
+    }
+
+    /* Active page button styling */
+    .pagination .active .custom-page-link {
+        background-color: #4da8da;
+        color: #ffffff;
+    }
+
+    /* Pagination arrows */
+    .pagination .page-item .custom-page-link span {
+        font-weight: bold;
+        font-size: 1.5rem;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .pagination-wrapper {
+            text-align: center;
+            position: relative; /* This keeps it relative to the page, not fixed */
+            margin-top: 40px;
+            width: auto;
+            left: 30%; /* Move the button more to the left (adjust this percentage) */
+            transform: translateX(-30%); /* Adjust this based on how far left you want to move it */
+        }
+
+        .pagination .page-link {
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-color: #4da8da;
+            color: #f0f0f0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border-radius: 50%;
+        }
+
+        .pagination .custom-page-link {
+            width: 40px;
+            height: 40px;
+        }
     }
 </style>
 
 <!-- JavaScript to handle post sharing -->
 <script>
 function sharePost(postUrl) {
-    // Create a temporary input element to copy the URL
     var tempInput = document.createElement("input");
     document.body.appendChild(tempInput);
     tempInput.value = postUrl;
@@ -228,7 +302,6 @@ function sharePost(postUrl) {
     document.execCommand("copy");
     document.body.removeChild(tempInput);
     
-    // Display an alert to inform the user
     alert("Post link copied to clipboard!");
 }
 </script>

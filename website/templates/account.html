@@ -59,20 +59,19 @@
         <!-- Posts Content -->
         <div class="tab-pane fade show active" id="posts-content">
             <div class="posts-grid">
-                <div class="row">
+                <div class="row suggested-post-grid">
                     {% if current_user.posts | length > 0 %}
                     {% for post in current_user.posts %}
                     <div class="col-12 col-md-4 mb-4">
-                        <div class="post-card">
-                            <a href="{{ url_for('views.post_detail', post_id=post.id) }}">
-                                {% if post.image %}
-                                <img src="{{ url_for('static', filename='uploads/' + post.image) }}" class="img-fluid post-image">
-                                {% else %}
-                                <div class="post-content">
-                                    <h5>{{ post.title }}</h5>
-                                    <p>{{ post.content[:100] }}...</p> <!-- Display first 100 characters -->
+                        <div class="post-box">
+                            <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="post-link">
+                                <div class="post-image-container">
+                                    {% if post.image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + post.image) }}" class="post-image">
+                                    {% else %}
+                                    <img src="https://via.placeholder.com/200" alt="Placeholder Image" class="post-image">
+                                    {% endif %}
                                 </div>
-                                {% endif %}
                             </a>
                         </div>
                     </div>
@@ -87,20 +86,19 @@
         <!-- Saved Content -->
         <div class="tab-pane fade" id="saved-content">
             <div class="posts-grid">
-                <div class="row">
+                <div class="row suggested-post-grid">
                     {% if current_user.saved_posts | length > 0 %}
                     {% for post in current_user.saved_posts %}
                     <div class="col-12 col-md-4 mb-4">
-                        <div class="post-card">
-                            <a href="{{ url_for('views.post_detail', post_id=post.id) }}">
-                                {% if post.image %}
-                                <img src="{{ url_for('static', filename='uploads/' + post.image) }}" class="img-fluid post-image">
-                                {% else %}
-                                <div class="post-content">
-                                    <h5>{{ post.title }}</h5>
-                                    <p>{{ post.content[:100] }}...</p>
+                        <div class="post-box">
+                            <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="post-link">
+                                <div class="post-image-container">
+                                    {% if post.image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + post.image) }}" class="post-image">
+                                    {% else %}
+                                    <img src="https://via.placeholder.com/200" alt="Placeholder Image" class="post-image">
+                                    {% endif %}
                                 </div>
-                                {% endif %}
                             </a>
                         </div>
                     </div>
@@ -200,6 +198,123 @@
     }
 </style>
 
+<!-- Styles for profile layout -->
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        color: #eaeaea;
+    }
+
+    .profile-header {
+        border-bottom: 1px solid #333;
+        padding-bottom: 20px;
+    }
+
+    .profile-picture {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #4da8da;
+    }
+
+    .username {
+        font-size: 1.8rem;
+        margin-bottom: 0;
+        color: #4da8da;
+    }
+
+    .profile-stats button {
+        background: none;
+        border: none;
+        color: #4da8da;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .nav-link {
+        color: #eaeaea;
+        font-weight: bold;
+        padding: 10px 20px;
+    }
+
+    .nav-link.active {
+        border-top: 2px solid #4da8da;
+    }
+
+    /* Post Grid Styling */
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      justify-items: center;
+  }
+
+
+    .post-box {
+        background-color: #333;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+        text-align: center;
+        max-width: px;
+        width: 100%;
+    }
+
+    .post-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .post-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .post-info {
+        margin-top: 10px;
+    }
+
+    .post-title {
+        font-size: 1.1rem;
+        color: #EAEAEA;
+        font-weight: bold;
+    }
+
+    .post-snippet {
+        color: #b3b3b3;
+        font-size: 0.9rem;
+        margin-top: 5px;
+    }
+
+    /* Remove the "Untitled" text */
+    .post-title:empty {
+        display: none;
+    }
+
+    /* Adjustments for smaller screens */
+    @media (max-width: 768px) {
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .username {
+            font-size: 1.5rem;
+        }
+
+        .posts-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+    }
+</style>
+
 <!-- Script to handle tab switching -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -222,132 +337,4 @@
         });
     });
 </script>
-
-<!-- Styles for profile layout -->
-<style>
-    .profile-container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 20px;
-        color: #eaeaea;
-    }
-    .profile-header {
-        border-bottom: 1px solid #333;
-        padding-bottom: 20px;
-    }
-    .profile-picture {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #4da8da;
-    }
-    .username {
-        font-size: 1.8rem;
-        margin-bottom: 0;
-        color: #4da8da;
-    }
-    .profile-stats button {
-        background: none;
-        border: none;
-        color: #4da8da;
-        font-size: 1rem;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .nav-link {
-        color: #eaeaea;
-        font-weight: bold;
-        padding: 10px 20px;
-    }
-    .nav-link.active {
-        border-top: 2px solid #4da8da;
-    }
-    .posts-grid .post-card {
-        border: 1px solid #4da8da;
-        overflow: hidden;
-        border-radius: 8px;
-        background-color: #1c1c1c;
-    }
-    .posts-grid .post-card img {
-        width: 100%;
-        height: auto;
-        object-fit: cover;
-    }
-    .profile-stats button:hover {
-        color: #2c91bb;
-    }
-
-    /* Adjustments for smaller screens */
-    @media (max-width: 768px) {
-        .profile-header {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .posts-grid .post-card {
-            margin-bottom: 15px;
-        }
-
-        .username {
-            font-size: 1.5rem;
-        }
-    }
-
-    /* Post card styling */
-    .post-card {
-        border: 1px solid #4da8da;
-        border-radius: 10px;
-        padding: 15px;
-        background-color: #1e1e1e;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        overflow: hidden;
-    }
-
-    .post-card:hover {
-        transform: scale(1.05);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-    }
-
-    .post-link {
-        text-decoration: none;
-        color: inherit;
-        display: block;
-    }
-
-    .post-image {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-bottom: 10px;
-    }
-
-    .post-content {
-        padding: 10px 0;
-    }
-
-    .post-title {
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: #4da8da;
-        margin-bottom: 5px;
-    }
-
-    .post-snippet {
-        font-size: 0.9rem;
-        color: #b3b3b3;
-    }
-
-    /* Adjustments for smaller screens */
-    @media (max-width: 768px) {
-        .post-title {
-            font-size: 1rem;
-        }
-
-        .post-snippet {
-            font-size: 0.8rem;
-        }
-    }
-</style>
 {% endblock %}

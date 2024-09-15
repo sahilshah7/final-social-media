@@ -224,48 +224,58 @@ def schedule_weekly_meetings(app):
 @views.route('/')
 def home():
     """Home route to display suggested posts, accounts, and handle Zoom meeting redirection."""
-    
+
     # Check if access is within the allowed online window (10 AM - 8 PM PST)
     if not is_within_online_window():
         return redirect(url_for('views.access_restricted'))
 
-    # Fetch suggested posts and accounts
-    try:
-        # Ensure `date_created` field exists in the `ForumPost` model
-        suggested_posts = ForumPost.query.order_by(ForumPost.date_created.desc()).limit(5).all()
+    # Pagination setup: Get page number from query string, default to 1 if not present
+    page = request.args.get('page', 1, type=int)
+    per_page = 9  # Number of suggested posts to display per page
 
-        # Ensure `last_login` field is being updated in the `User` model
+    # Fetch suggested posts and accounts with error handling
+    try:
+        # Fetch the suggested posts with pagination
+        suggested_posts = ForumPost.query.order_by(ForumPost.date_created.desc()).paginate(page=page, per_page=per_page)
+
+        # Fetch suggested accounts, limit to the 5 most recently logged in users
         suggested_accounts = User.query.order_by(User.last_login.desc()).limit(5).all()
 
-        # Log fetched data for debugging
-        print(f"Number of suggested posts: {len(suggested_posts)}")
-        for post in suggested_posts:
-            print(f"Post ID: {post.id}, Post Title: {post.title}, Created At: {post.date_created}")
-
-        print(f"Number of suggested accounts: {len(suggested_accounts)}")
-        for account in suggested_accounts:
-            print(f"User ID: {account.id}, User Email: {account.email}, Last Login: {account.last_login}")
+        # Logging fetched data for debugging
+        logging.info(f"Page {page}: Fetched {len(suggested_posts.items)} suggested posts.")
+        logging.info(f"Fetched {len(suggested_accounts)} suggested accounts.")
 
     except Exception as e:
-        print(f"Error fetching suggested posts or accounts: {str(e)}")
-        suggested_posts, suggested_accounts = [], []  # Fallback to empty lists if there's an error
+        # Log the error and set fallback values
+        logging.error(f"Error fetching suggested posts or accounts: {str(e)}")
+        suggested_posts = None
+        suggested_accounts = []  # Use an empty list if fetching accounts fails
 
-    # Check if within Zoom meeting window
+    # Check if within the Zoom meeting window and redirect if meeting is active
     if is_within_zoom_window():
         flash("Meeting is live, redirecting to Zoom...", "info")
         try:
             access_token = get_access_token()
-            zoom_meeting_url = schedule_zoom_meeting(access_token, "Meeting Topic", "2024-09-05T16:00:00Z", 40)
+            zoom_meeting_url = schedule_zoom_meeting(
+                access_token, 
+                topic="Scheduled Meeting", 
+                start_time="2024-09-05T16:00:00Z", 
+                duration=40
+            )
             if zoom_meeting_url:
                 return redirect(zoom_meeting_url)
             else:
-                flash("Error scheduling the Zoom meeting. Check logs for details.", "danger")
+                flash("Error scheduling the Zoom meeting. Please check the logs for details.", "danger")
         except Exception as e:
-            flash(f"Error: {str(e)}", "danger")
-            print(f"Exception occurred: {str(e)}")  # Log the exception
+            flash(f"Zoom scheduling error: {str(e)}", "danger")
+            logging.error(f"Exception during Zoom meeting scheduling: {str(e)}")
 
-    # Render the home page with suggested posts and accounts
-    return render_template('home.html', suggested_posts=suggested_posts, suggested_accounts=suggested_accounts)
+    # Render the home page, passing the suggested posts and accounts to the template
+    return render_template(
+        'home.html', 
+        suggested_posts=suggested_posts,  # Pass the Pagination object to the template
+        suggested_accounts=suggested_accounts  # Pass the list of suggested accounts
+    )
 
 # Meeting room route
 @meeting_bp.route('/meeting_room')
@@ -469,6 +479,11 @@ def post_detail(post_id):
     highfives = HighFive.query.filter_by(post_id=post.id).count()  # Count of high fives
     return render_template('post_detail.html', post=post, comments=comments, highfive_form=highfive_form, highfives=highfives)
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @views.route('/create_post/<int:forum_id>', methods=['GET', 'POST'])
 @login_required
 def create_post(forum_id):
@@ -532,10 +547,23 @@ def forums():
     forum_id = 1  # Replace with the appropriate forum ID
     return redirect(url_for('views.forum_detail', forum_id=forum_id))
 
-@views.route('/forum/<int:forum_id>')
+@views.route('/forum/<int:forum_id>', methods=['GET'])
 def forum_detail(forum_id):
+    # Check if access is within the allowed online window
+    access_allowed = is_within_online_window()
+
+    # Debug statement for checking access status
+    current_app.logger.debug(f"Access allowed: {access_allowed}")
+
+    # Redirect to access restricted page if access is not allowed
+    if not access_allowed:
+        return redirect(url_for('views.access_restricted'))
+
+    # Get the page number from the query string
+    page = request.args.get('page', 1, type=int)
     forum = Forum.query.get_or_404(forum_id)
-    forum_posts = ForumPost.query.filter_by(forum_id=forum_id).all()
+    forum_posts = ForumPost.query.filter_by(forum_id=forum_id).order_by(ForumPost.date_created.desc()).paginate(page=page, per_page=5)
+
     return render_template('forum_detail.html', forum=forum, forum_posts=forum_posts)
 
 @views.route('/post/<int:post_id>/comment', methods=['POST'])

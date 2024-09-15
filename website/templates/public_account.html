@@ -56,11 +56,21 @@
     <!-- User Posts Section -->
     <div class="user-posts">
         <h4 class="text-light mb-4">Posts</h4>
-        <div class="list-group">
+        <div class="posts-grid">
             {% for post in user.posts %}
-            <div class="list-group-item bg-transparent text-light border-0 mb-3" style="padding-left: 0;">
-                <p class="text-muted"><small>Posted on {{ post.date_created.strftime('%B %d, %Y') }}</small></p>
-                <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="btn btn-outline-light">View Post</a>
+            <div class="post-box">
+                <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="post-link">
+                    {% if post.image %}
+                    <div class="post-image-container">
+                        <img src="{{ url_for('static', filename='uploads/' + post.image) }}" class="post-image" alt="Post Image">
+                    </div>
+                    {% else %}
+                    <div class="post-info">
+                        <h5 class="post-title">{{ post.title or "Untitled" }}</h5>
+                        <p class="post-snippet">{{ post.content[:100] }}...</p> <!-- Display first 100 characters -->
+                    </div>
+                    {% endif %}
+                </a>
             </div>
             {% else %}
             <p class="text-muted">This user hasn't posted anything yet.</p>
@@ -194,6 +204,57 @@
   .list-unstyled a:hover {
       color: #17a2b8;
       text-decoration: underline;
+  }
+
+  /* Posts Grid Layout */
+  .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+  }
+
+  .post-box {
+      background-color: #333;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+      text-align: center;
+  }
+
+  .post-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .post-image-container {
+      height: 180px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+
+  .post-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+  }
+
+  .post-info {
+      margin-top: 10px;
+  }
+
+  .post-title {
+      font-size: 1.1rem;
+      color: #EAEAEA;
+      font-weight: bold;
+  }
+
+  .post-snippet {
+      color: #b3b3b3;
+      font-size: 0.9rem;
+      margin-top: 5px;
   }
 </style>
 {% endblock %}

@@ -2,15 +2,13 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
-from flask_mail import Mail, Message
+from flask_mail import Mail
 from flask_migrate import Migrate
 from os import path, makedirs
 from sqlalchemy import MetaData
 import os
 from dotenv import load_dotenv
 import logging
-import pytz
-from datetime import datetime, time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -33,7 +31,7 @@ metadata = MetaData(naming_convention=convention)
 # Initialize extensions
 db = SQLAlchemy(metadata=metadata)
 csrf = CSRFProtect()
-mail = Mail()  # Initialize Flask-Mail instance once
+mail = Mail()
 migrate = Migrate()
 login_manager = LoginManager()
 
@@ -54,6 +52,7 @@ def create_app():
     
     # Configure UPLOAD_FOLDER for profile picture uploads
     app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'profile_pics')
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'uploads')
 
     # Ensure the upload folder exists
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -125,4 +124,4 @@ if __name__ == "__main__":
     from .views import schedule_weekly_meetings
     schedule_weekly_meetings(app)  # Schedule weekly meetings with app instance
     # Run the Flask app on port 5001 to avoid conflicts
-    app.run(debug=True, port=5001)  # Use a different port
+    app.run(debug=True, port=5001)
