@@ -6,9 +6,9 @@
 <div class="container mt-4">
     <div class="profile-header text-center mb-4">
         {% if user.profile_picture %}
-        <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm" style="width: 120px; height: 120px;">
+        <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm blue-ring" style="width: 120px; height: 120px;">
         {% else %}
-        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm" style="width: 120px; height: 120px;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm blue-ring" style="width: 120px; height: 120px;">
         {% endif %}
         
         <h3 class="text-light">{{ user.username or user.first_name }}</h3>
@@ -83,7 +83,7 @@
                 <ul class="list-unstyled">
                     {% for follower in followers %}
                     <li class="media my-3">
-                        <img src="{{ url_for('static', filename='profile_pics/' + (follower.follower_user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="rounded-circle mr-3" style="width: 50px; height: 50px;">
+                        <img src="{{ url_for('static', filename='profile_pics/' + (follower.follower_user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="rounded-circle mr-3 blue-ring" style="width: 50px; height: 50px;">
                         <div class="media-body">
                             <h5 class="mt-0 mb-1"><a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}" class="text-light">{{ follower.follower_user.username or follower.follower_user.first_name }}</a></h5>
                         </div>
@@ -111,7 +111,7 @@
                 <ul class="list-unstyled">
                     {% for follow in following %}
                     <li class="media my-3">
-                        <img src="{{ url_for('static', filename='profile_pics/' + (follow.followed_user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="rounded-circle mr-3" style="width: 50px; height: 50px;">
+                        <img src="{{ url_for('static', filename='profile_pics/' + (follow.followed_user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="rounded-circle mr-3 blue-ring" style="width: 50px; height: 50px;">
                         <div class="media-body">
                             <h5 class="mt-0 mb-1"><a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}" class="text-light">{{ follow.followed_user.username or follow.followed_user.first_name }}</a></h5>
                         </div>
@@ -131,8 +131,9 @@
       max-width: 900px;
   }
 
-  .profile-header img {
-      border: 3px solid #343a40;
+  .profile-header img, .media img {
+      border: 2px solid #4da8da; /* Blue ring */
+      padding: 2px; /* Slight padding around the image */
   }
 
   hr {
@@ -161,10 +162,6 @@
 
   .media {
       align-items: center;
-  }
-
-  .media img {
-      border: 2px solid #17a2b8;
   }
 
   .modal-content {

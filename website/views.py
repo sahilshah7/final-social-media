@@ -22,6 +22,10 @@ from flask_mail import Message
 from website import mail  # Import app and mail
 from transformers import AutoModelForCausalLM, AutoTokenizer, BlenderbotTokenizer, BlenderbotForConditionalGeneration
 import torch
+from flask import render_template, request, jsonify, redirect, url_for
+from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
+from better_profanity import profanity
+from PIL import Image, ImageDraw
 
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -39,15 +43,6 @@ ZOOM_ACCOUNT_ID = 'ZObsKZODREywXjz3MLPixQ'  # Server-to-Server OAuth apps requir
 ZOOM_AUTH_URL = "https://zoom.us/oauth/token"
 ZOOM_API_URL = "https://api.zoom.us/v2/users/me/meetings"
 
-model_id = "facebook/blenderbot-400M-distill"
-tokenizer = BlenderbotTokenizer.from_pretrained(model_id)
-model = BlenderbotForConditionalGeneration.from_pretrained(model_id)
-
-from flask import render_template, request, jsonify, redirect, url_for
-from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
-from better_profanity import profanity
-
-# Load the BlenderBot model and tokenizer
 model_id = "facebook/blenderbot-400M-distill"
 tokenizer = BlenderbotTokenizer.from_pretrained(model_id)
 model = BlenderbotForConditionalGeneration.from_pretrained(model_id)
@@ -672,6 +667,45 @@ def edit_profile():
         current_user.website = edit_form.website.data
         current_user.birthday = edit_form.birthday.data  # Handle the birthday field
 
+        # Handle profile picture upload
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file and file.filename != '':  # Ensure a file is selected
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+
+                try:
+                    # Save the file to the upload folder
+                    file.save(file_path)
+                    
+                    # Open the saved image
+                    image = Image.open(file_path)
+
+                    # Create a circular mask for the image
+                    width, height = image.size
+                    mask = Image.new('L', (width, height), 0)
+                    draw = ImageDraw.Draw(mask)
+
+                    # Draw a circle in the center of the image
+                    circle_radius = min(width, height) // 2
+                    center = (width // 2, height // 2)
+                    draw.ellipse(
+                        (center[0] - circle_radius, center[1] - circle_radius,
+                         center[0] + circle_radius, center[1] + circle_radius), fill=255)
+
+                    # Create a new image with transparent background and paste the circular mask
+                    circular_image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+                    circular_image.paste(image, (0, 0), mask)
+
+                    # Save the cropped image
+                    circular_image.save(file_path)
+
+                    # Update the profile picture in the database
+                    current_user.profile_picture = filename
+                except Exception as e:
+                    flash('Error uploading or processing the profile picture. Please try again.', 'danger')
+                    print(f"Error saving profile picture: {e}")  # Debugging output
+
         # Commit changes to the database
         db.session.commit()
 
@@ -837,10 +871,10 @@ def give_highfive(post_id):
         db.session.add(highfive)
         db.session.commit()
         
-        # Create a notification for the post author (now accessible via post.user)
+        # Create a notification for the post author (use post.author or the correct field for the user)
         create_notification(
             notification_type='highfive_post',
-            recipient=post.user,  # This will now work
+            recipient=post.author,  # This should be the correct field for the post author
             sender=current_user,
             message=f'{current_user.username} gave your post a high five!',
             post=post

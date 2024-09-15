@@ -23,13 +23,6 @@
                 {% endif %}
             </p>
             
-            <p><strong>Website:</strong> 
-                {% if current_user.website %}
-                <a href="{{ current_user.website }}" target="_blank">{{ current_user.website }}</a>
-                {% else %}
-                Not specified
-                {% endif %}
-            </p>
             <p><strong>Gender:</strong> {{ current_user.gender or 'Prefer not to say' }}</p>
 
             <!-- Edit Profile Button -->

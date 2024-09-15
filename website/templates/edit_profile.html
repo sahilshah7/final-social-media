@@ -6,10 +6,23 @@
         <!-- Main edit profile section -->
         <div class="col-md-6 offset-md-3">
             <h2 class="text-center">Edit Profile</h2>
-            
+
             <!-- Profile Edit Form -->
-            <form method="POST" action="{{ url_for('views.edit_profile') }}" enctype="multipart/form-data">
-                {{ edit_form.hidden_tag() }}  <!-- CSRF Token -->
+            <form method="POST" action="{{ url_for('views.edit_profile') }}" enctype="multipart/form-data" id="profileForm">
+                {{ edit_form.hidden_tag() }} <!-- CSRF Token -->
+
+                <!-- Profile Picture Upload -->
+                <div class="form-group text-center">
+                    <label for="profile_picture">Upload Profile Picture</label>
+                    <div class="mb-3 position-relative">
+                        {% if current_user.profile_picture %}
+                        <img id="profilePicPreview" src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px;">
+                        {% else %}
+                        <img id="profilePicPreview" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px;">
+                        {% endif %}
+                    </div>
+                    <input type="file" name="profile_picture" class="form-control-file" id="profile_picture" accept="image/*">
+                </div>
 
                 <!-- First Name Field -->
                 <div class="form-group">
@@ -27,13 +40,6 @@
                 <div class="form-group">
                     <label for="email">Email</label>
                     {{ edit_form.email(class="form-control", id="email", placeholder="Enter your email", aria_label="Email") }}
-                </div>
-
-                <!-- Website Field -->
-                <div class="form-group">
-                    <label for="website">Website</label>
-                    {{ edit_form.website(class="form-control", id="website", placeholder="Enter your website URL", aria_label="Website") }}
-                    <small class="form-text text-muted">Visit the app on mobile to edit your website link.</small>
                 </div>
 
                 <!-- Bio Field -->
@@ -57,7 +63,7 @@
 
                 <!-- Submit Button -->
                 <div class="form-group text-center">
-                    <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                    <button type="submit" class="btn btn-primary btn-lg" id="saveChangesButton">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -77,5 +83,83 @@
         background-color: #3490dc;
         border-color: #3490dc;
     }
+    .img-thumbnail {
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+        object-fit: cover; /* Ensure the image fits the circle */
+    }
+    .cropper-container {
+        border-radius: 50%; /* Make cropper view circular */
+    }
 </style>
+
+<!-- Cropper.js Integration -->
+<link href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/cropperjs"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const profilePicInput = document.getElementById('profile_picture');
+        const profilePicPreview = document.getElementById('profilePicPreview');
+        const saveButton = document.getElementById('saveChangesButton');
+        let cropper;
+
+        // Handle image preview and cropping
+        profilePicInput.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    profilePicPreview.src = e.target.result;
+
+                    // Initialize Cropper.js
+                    if (cropper) {
+                        cropper.destroy(); // Destroy previous cropper instance
+                    }
+                    cropper = new Cropper(profilePicPreview, {
+                        aspectRatio: 1, // Ensure it's a circle by setting the aspect ratio to 1:1
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        dragMode: 'move',
+                        minContainerWidth: 150,
+                        minContainerHeight: 150,
+                        cropBoxResizable: false, // Prevent resizing of the crop box
+                        ready() {
+                            cropper.crop();
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle form submission and get cropped image
+        document.getElementById('profileForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            if (cropper) {
+                cropper.getCroppedCanvas({
+                    width: 150,
+                    height: 150,
+                    fillColor: '#fff',
+                }).toBlob(function (blob) {
+                    const formData = new FormData(document.getElementById('profileForm'));
+                    formData.set('profile_picture', blob, 'profile_picture.png');
+
+                    // Submit the form with cropped image
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '{{ url_for("views.edit_profile") }}', true);
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                            // Handle the successful submission (optional)
+                            window.location.href = '{{ url_for("views.account") }}';
+                        }
+                    };
+                    xhr.send(formData);
+                });
+            }
+        });
+    });
+</script>
 {% endblock %}

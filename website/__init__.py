@@ -51,7 +51,17 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_default_secret_key')
     app.config['SECURITY_PASSWORD_SALT'] = os.getenv('SECURITY_PASSWORD_SALT', 'your_secret_salt')
     app.config['WTF_CSRF_ENABLED'] = True  # Enable CSRF protection
-    app.config['UPLOAD_FOLDER'] = path.join(app.static_folder, 'uploads')
+    
+    # Configure UPLOAD_FOLDER for profile picture uploads
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'profile_pics')
+
+    # Ensure the upload folder exists
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        try:
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            logging.info('Upload folder created successfully.')
+        except OSError as e:
+            logging.error(f"Error creating upload folder: {e}")
 
     # Configure Flask-Mail for Gmail
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -72,19 +82,11 @@ def create_app():
         app.debug = True
         logging.info("Running in development mode")
 
-    # Ensure the upload folder exists
-    if not path.exists(app.config['UPLOAD_FOLDER']):
-        try:
-            makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-            logging.info('Upload folder created successfully.')
-        except OSError as e:
-            logging.error(f"Error creating upload folder: {e}")
-
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
-    mail.init_app(app)  # Initialize Flask-Mail with the app
+    mail.init_app(app)
     login_manager.init_app(app)
 
     # Set login view for Flask-Login

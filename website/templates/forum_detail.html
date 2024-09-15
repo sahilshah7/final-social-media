@@ -23,7 +23,7 @@
             <li class="list-group-item">
                 <!-- Post Header with Author Info -->
                 <div class="d-flex align-items-center mb-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Author Avatar" class="rounded-circle post-avatar mr-3">
+                    <img src="{{ url_for('static', filename='profile_pics/' + post.author.profile_picture) if post.author.profile_picture else 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png' }}" alt="Author Avatar" class="rounded-circle post-avatar mr-3 blue-ring">
                     <div>
                         <p class="text-muted mb-0">Posted by <a href="{{ url_for('views.public_account', user_id=post.author.id) }}" class="post-author">{{ post.author.first_name }} {{ post.author.last_name }}</a> on {{ post.date_created.strftime('%B %d, %Y') }}</p>
                     </div>
@@ -38,12 +38,22 @@
                 </div>
                 {% endif %}
                 
-                <!-- Post Footer with Stats -->
+                <!-- Post Footer with Stats and Share Button -->
                 <div class="d-flex justify-content-between align-items-center mt-2">
                     <div class="post-stats">
                         <span class="badge badge-pill badge-success">High Fives: {{ post.highfives | length }}</span>
                     </div>
-                    <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="btn btn-outline-light btn-sm">View Post</a>
+                    <div>
+                        <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="btn btn-outline-light btn-sm">View Post</a>
+                        <!-- Share Button -->
+                        <button class="btn btn-outline-light btn-sm" onclick="sharePost('{{ url_for('views.post_detail', post_id=post.id, _external=True) }}')">Share</button>
+
+                        <!-- Twitter Share Link -->
+                        <a href="https://twitter.com/intent/tweet?url={{ url_for('views.post_detail', post_id=post.id, _external=True) }}" target="_blank" class="btn btn-outline-light btn-sm">Share on Twitter</a>
+
+                        <!-- Facebook Share Link -->
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ url_for('views.post_detail', post_id=post.id, _external=True) }}" target="_blank" class="btn btn-outline-light btn-sm">Share on Facebook</a>
+                    </div>
                 </div>
             </li>
             {% endfor %}
@@ -190,5 +200,36 @@
         background-color: #4da8da;
         color: #fff;
     }
+
+    .blue-ring {
+        border: 2px solid #4da8da;  /* Thinner blue border */
+        padding: 2px;  /* Adjust padding to make it fit better */
+    }
+
+    .rounded-circle {
+        border-radius: 50%; /* Ensures the image remains circular */
+    }
+
+    .post-avatar {
+        width: 50px;
+        height: 50px;
+        object-fit: cover; /* Ensures the image fits within the circle */
+    }
 </style>
+
+<!-- JavaScript to handle post sharing -->
+<script>
+function sharePost(postUrl) {
+    // Create a temporary input element to copy the URL
+    var tempInput = document.createElement("input");
+    document.body.appendChild(tempInput);
+    tempInput.value = postUrl;
+    tempInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+    
+    // Display an alert to inform the user
+    alert("Post link copied to clipboard!");
+}
+</script>
 {% endblock %}

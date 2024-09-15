@@ -56,8 +56,14 @@
                         {% if current_user in post.savers %} Unsave {% else %} Save {% endif %}
                     </button>
                 </form>
-                <a href="#" class="btn btn-outline-light btn-sm" title="Share this post"><i class="fas fa-share"></i> Share</a>
-                <a href="#" class="btn btn-outline-light btn-sm" title="Report this post"><i class="fas fa-flag"></i> Report</a>
+                <!-- Share Button -->
+                <button class="btn btn-outline-light btn-sm" onclick="sharePost('{{ url_for('views.post_detail', post_id=post.id, _external=True) }}')"><i class="fas fa-share"></i> Share</button>
+
+                <!-- Twitter Share Link -->
+                <a href="https://twitter.com/intent/tweet?url={{ url_for('views.post_detail', post_id=post.id, _external=True) }}" target="_blank" class="btn btn-outline-light btn-sm"><i class="fab fa-twitter"></i> Share on Twitter</a>
+
+                <!-- Facebook Share Link -->
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ url_for('views.post_detail', post_id=post.id, _external=True) }}" target="_blank" class="btn btn-outline-light btn-sm"><i class="fab fa-facebook"></i> Share on Facebook</a>
             </div>
         </div>
 
@@ -71,6 +77,22 @@
         </div>
     </div>
 </div>
+
+<!-- JavaScript to handle post sharing -->
+<script>
+function sharePost(postUrl) {
+    // Create a temporary input element to copy the URL
+    var tempInput = document.createElement("input");
+    document.body.appendChild(tempInput);
+    tempInput.value = postUrl;
+    tempInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+    
+    // Display an alert to inform the user
+    alert("Post link copied to clipboard!");
+}
+</script>
 
 <!-- Styles -->
 <style>

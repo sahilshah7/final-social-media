@@ -111,6 +111,8 @@
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         transition: background-color 0.3s ease, transform 0.3s ease;
+        width: 100%;
+        max-width: 250px; /* Increase the max-width for larger post images */
     }
 
     .post-box:hover {
@@ -120,7 +122,6 @@
 
     .post-image {
         width: 100%;
-        max-width: 200px;
         height: auto;
         border-radius: 8px;
     }
@@ -188,6 +189,25 @@
         .main-section, .right-section {
             width: 100%;
             margin-bottom: 20px;
+        }
+
+        .post-box {
+            max-width: 100%; /* Make posts fill the available width on mobile */
+        }
+
+        .suggested-post-images {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .list-group-item {
+            font-size: 14px; /* Reduce font size for smaller accounts */
+            padding: 10px;
+        }
+
+        .rounded-circle {
+            width: 35px; /* Smaller profile picture */
+            height: 35px;
         }
     }
 </style>

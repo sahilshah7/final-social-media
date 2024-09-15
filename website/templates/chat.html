@@ -6,12 +6,14 @@ AI Chat
 
 {% block content %}
 <div id="chat-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh;">
-    <div id="messages" style="width: 100%; max-width: 600px; border: 2px solid #4da8da; border-radius: 10px; padding: 15px; height: 60vh; overflow-y: auto; background-color: #1c1c1c; color: #f0f0f0; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
-        <!-- Messages will appear here -->
+    <div id="messages" style="width: 100%; max-width: 600px; border: 2px solid #4da8da; border-radius: 10px; padding: 15px; height: 60vh; overflow-y: auto; background-color: #1c1c1c; color: #f0f0f0; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+        <p id="initial-message" style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #f0f0f0; text-align: center;">Type something in the box to talk with AI!</p>
     </div>
-    <div style="width: 100%; max-width: 600px; display: flex; align-items: center;">
-        <input type="text" id="user-input" placeholder="Type a message" style="flex: 1; padding: 15px; border: 1px solid #4da8da; background-color: #333; color: #f0f0f0; border-radius: 5px 0 0 5px; font-size: 1rem;">
-        <button id="send-btn" onclick="sendMessage()" style="padding: 15px 25px; background-color: #4da8da; color: #fff; border: none; border-radius: 0 5px 5px 0; cursor: pointer; font-size: 1rem; transition: background-color 0.3s ease;">Send</button>
+    <div style="width: 100%; max-width: 600px; display: flex; align-items: center; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);">
+        <input type="text" id="user-input" placeholder="Type a message..." style="flex: 1; padding: 15px; border: 1px solid #4da8da; background-color: #2c2c2c; color: #f0f0f0; border-radius: 5px 0 0 5px; font-size: 1rem; outline: none; transition: border-color 0.3s ease;">
+        <button id="send-btn" onclick="sendMessage()" style="padding: 15px 25px; background-color: #4da8da; color: #fff; border: none; border-radius: 0 5px 5px 0; cursor: pointer; font-size: 1rem; transition: background-color 0.3s ease, transform 0.2s;">
+            Send
+        </button>
     </div>
 </div>
 {% endblock %}
@@ -22,15 +24,30 @@ AI Chat
         const input = document.getElementById('user-input').value;
         const csrfToken = "{{ csrf_token() }}";
         const messagesContainer = document.getElementById('messages');
+        const initialMessage = document.getElementById('initial-message');
 
         if (!input) {
             console.error("No input provided");
             return;
         }
 
+        // Remove the initial message if it exists
+        if (initialMessage) {
+            initialMessage.remove();
+        }
+
         // Display user's message
-        messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #4da8da;">You: ${input}</p>`;
+        messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #4da8da; text-align: right;">You: ${input}</p>`;
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Clear the input field
+        document.getElementById('user-input').value = '';
+
+        // Add "AI is typing..." indicator
+        const typingIndicator = document.createElement('p');
+        typingIndicator.style = 'margin: 10px 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #f0f0f0;';
+        typingIndicator.innerText = 'AI is typing...';
+        messagesContainer.appendChild(typingIndicator);
 
         try {
             const response = await fetch('{{ url_for("views.chat") }}', {
@@ -47,21 +64,43 @@ AI Chat
             }
 
             const data = await response.json();
+            typingIndicator.remove(); // Remove the typing indicator when a response is received
+
             if (data.error) {
                 console.error("Error from backend:", data.error);
-                messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #ff4d4d;">Error: ${data.error}</p>`;
+                messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #ff4d4d; border-radius: 5px; color: #fff;">Error: ${data.error}</p>`;
             } else {
                 // Simulate typing delay for realism
                 setTimeout(() => {
-                    messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #f0f0f0;">AI: ${data.response}</p>`;
+                    messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #333; border-radius: 5px; color: #f0f0f0;">AI: ${data.response}</p>`;
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }, 1000);  // 1 second delay for realism
             }
-            document.getElementById('user-input').value = ''; // Clear input
         } catch (error) {
             console.error("Fetch error:", error);
-            messagesContainer.innerHTML += `<p style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #ff4d4d;">Fetch error: ${error}</p>`;
+            typingIndicator.remove(); // Remove typing indicator if there's an error
+            messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #ff4d4d; border-radius: 5px; color: #fff;">Fetch error: ${error}</p>`;
         }
     }
+
+    // Enhance the button hover and active states
+    const sendButton = document.getElementById('send-btn');
+    sendButton.addEventListener('mouseover', () => {
+        sendButton.style.backgroundColor = '#2c91bb';
+        sendButton.style.transform = 'scale(1.05)';
+    });
+
+    sendButton.addEventListener('mouseout', () => {
+        sendButton.style.backgroundColor = '#4da8da';
+        sendButton.style.transform = 'scale(1)';
+    });
+
+    sendButton.addEventListener('mousedown', () => {
+        sendButton.style.transform = 'scale(0.95)';
+    });
+
+    sendButton.addEventListener('mouseup', () => {
+        sendButton.style.transform = 'scale(1.05)';
+    });
 </script>
 {% endblock %}
