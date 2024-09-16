@@ -306,7 +306,7 @@ def is_within_online_window():
     
     # Define start and end time for the online window
     start_time = time(10, 0)  # 10 AM
-    end_time = time(21, 0)    # 8 PM (24-hour format)
+    end_time = time(20, 0)    # 8 PM (24-hour format)
     
     # Debugging statements
     print(f"Start time: {start_time}")
