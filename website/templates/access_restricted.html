@@ -11,22 +11,23 @@
 </div>
 
 <style>
-  /* Add styles for restricted access notifications */
+  /* Shared styles for both light and dark modes */
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+  }
+
   .access-restricted {
     text-align: center;
-    padding: 20px;
-    background-color: #181818; /* Same as the background color */
-    color: #d1d1d1; /* Light grey text color */
+    padding: 40px 20px;
     border-radius: 8px;
-    box-shadow: none; /* Remove the shadow */
-    margin-top: -40vh; /* Move the text up even higher */
-    position: relative;
-    top: 10%; /* Fine-tune vertical positioning */
+    margin-top: -20vh;
   }
 
   .access-restricted h1 {
     font-size: 2.5rem; /* Large text size */
-    color: #4da8da; /* Light blue color for "Website Closed" */
     margin-bottom: 10px;
   }
 
@@ -35,12 +36,46 @@
     margin: 0;
   }
 
-  .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Full viewport height */
-    background-color: #181818; /* Dark background for contrast */
+  /* Light Mode */
+  body.light-mode {
+    background-color: #f9f9f9; /* Light background */
+    color: #333; /* Dark text color */
+  }
+
+  body.light-mode .access-restricted {
+    background-color: #fff; /* White background for the box */
+    color: #333; /* Dark text inside the box */
+    border: 1px solid #ccc; /* Light grey border */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+  }
+
+  body.light-mode .access-restricted h1 {
+    color: #4da8da; /* Blue color for the heading */
+  }
+
+  body.light-mode .access-restricted p {
+    color: #555; /* Darker grey for the text */
+  }
+
+  /* Dark Mode */
+  body.dark-mode {
+    background-color: #181818; /* Dark background */
+    color: #d1d1d1; /* Light grey text color */
+  }
+
+  body.dark-mode .access-restricted {
+    background-color: #181818; /* Match the background */
+    color: #d1d1d1; /* Light grey text inside the box */
+    border: none; /* No border */
+    box-shadow: none; /* Remove shadow */
+  }
+
+  body.dark-mode .access-restricted h1 {
+    color: #4da8da; /* Light blue for the heading */
+  }
+
+  body.dark-mode .access-restricted p {
+    color: #d1d1d1; /* Light grey for the text */
   }
 
   /* Responsive styling */

@@ -128,11 +128,12 @@
             }
         });
 
-        // Handle form submission and get cropped image
+        // Handle form submission and get cropped image if uploaded, otherwise submit without image
         document.getElementById('profileForm').addEventListener('submit', function (event) {
             event.preventDefault(); // Prevent default form submission
 
             if (cropper) {
+                // If there is a cropped image, process it
                 cropper.getCroppedCanvas({
                     width: 150,
                     height: 150,
@@ -142,21 +143,30 @@
                     formData.set('profile_picture', blob, 'profile_picture.png');
 
                     // Submit the form with cropped image
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', '{{ url_for("views.edit_profile") }}', true);
-                    xhr.onload = function () {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            // Handle successful submission
-                            window.location.href = '{{ url_for("views.account") }}';
-                        } else {
-                            // Handle errors
-                            alert('An error occurred while uploading the profile picture. Please try again.');
-                        }
-                    };
-                    xhr.send(formData);
+                    submitFormWithFormData(formData);
                 }, 'image/png'); // Set MIME type for the image
+            } else {
+                // No image uploaded, submit the form without image
+                const formData = new FormData(document.getElementById('profileForm'));
+                submitFormWithFormData(formData);
             }
         });
+
+        // Function to handle form submission with FormData
+        function submitFormWithFormData(formData) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ url_for("views.edit_profile") }}', true);
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    // Handle successful submission
+                    window.location.href = '{{ url_for("views.account") }}';
+                } else {
+                    // Handle errors
+                    alert('An error occurred while saving your profile. Please try again.');
+                }
+            };
+            xhr.send(formData);
+        }
     });
 </script>
 {% endblock %}

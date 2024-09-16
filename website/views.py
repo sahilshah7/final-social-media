@@ -306,7 +306,7 @@ def is_within_online_window():
     
     # Define start and end time for the online window
     start_time = time(10, 0)  # 10 AM
-    end_time = time(20, 0)    # 8 PM (24-hour format)
+    end_time = time(21, 0)    # 8 PM (24-hour format)
     
     # Debugging statements
     print(f"Start time: {start_time}")
@@ -494,31 +494,49 @@ def create_post(forum_id):
         image_filename = None
         if form.image.data:
             image = form.image.data
-            image_filename = secure_filename(image.filename)
-            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
 
-            # Ensure the directory exists
-            upload_folder = os.path.dirname(image_path)
-            if not os.path.exists(upload_folder):
+            # Debug: Check the filename and extension
+            print(f"Uploaded image filename: {image.filename}")
+            if image.filename == '':
+                flash('No image selected', 'danger')
+                return redirect(request.url)
+
+            if allowed_file(image.filename):
+                image_filename = secure_filename(image.filename)
+                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+
+                # Ensure the directory exists
+                if not os.path.exists(current_app.config['UPLOAD_FOLDER']):
+                    try:
+                        os.makedirs(current_app.config['UPLOAD_FOLDER'], mode=0o755)
+                    except OSError as e:
+                        flash(f'Error creating upload directory: {e}', 'danger')
+                        return redirect(url_for('views.create_post', forum_id=forum_id))
+
                 try:
-                    os.makedirs(upload_folder, mode=0o755)
-                except OSError as e:
-                    flash(f'Error creating directory: {e}', 'danger')
+                    # Use os.path.isfile to ensure it's a file and not a folder
+                    assert not os.path.isdir(image_path), f"Path '{image_path}' is a directory, not a file."
+                    print(f"Saving image to: {image_path}")
+                    
+                    # Save the image file
+                    image.save(image_path)
+                except AssertionError as e:
+                    flash(f"Invalid file path: {e}", 'danger')
                     return redirect(url_for('views.create_post', forum_id=forum_id))
-
-            try:
-                # Save the image file
-                image.save(image_path)
-            except PermissionError as e:
-                flash(f'Permission error: {e}', 'danger')
+                except PermissionError as e:
+                    flash(f'Permission error: {e}', 'danger')
+                    return redirect(url_for('views.create_post', forum_id=forum_id))
+                except Exception as e:
+                    flash(f'Error saving image: {e}', 'danger')
+                    return redirect(url_for('views.create_post', forum_id=forum_id))
+            else:
+                flash('Invalid file type. Please upload a png, jpg, jpeg, or gif image.', 'danger')
                 return redirect(url_for('views.create_post', forum_id=forum_id))
-            except Exception as e:
-                flash(f'Error saving image: {e}', 'danger')
-                return redirect(url_for('views.create_post', forum_id=forum_id))
 
+        # Create a new forum post with form data
         new_post = ForumPost(
-            title="Untitled",  # Default value for title
-            content="",        # Default value for content
+            title=form.title.data or "Untitled",  # Default title value
+            content=form.content.data or "",      # Default content value
             forum_id=forum_id,
             user_id=current_user.id,
             image=image_filename
@@ -526,7 +544,7 @@ def create_post(forum_id):
         db.session.add(new_post)
         db.session.commit()
 
-        flash('Your image has been uploaded!', 'success')
+        flash('Your post has been created!', 'success')
         return redirect(url_for('views.forum_detail', forum_id=forum_id))
 
     return render_template('create_post.html', form=form, forum=forum)
@@ -724,17 +742,17 @@ def edit_profile():
         current_user.website = edit_form.website.data
         current_user.birthday = edit_form.birthday.data  # Handle the birthday field
 
-        # Handle profile picture upload
+        # Handle profile picture upload if a file is selected
         if 'profile_picture' in request.files:
             file = request.files['profile_picture']
-            if file and file.filename != '':  # Ensure a file is selected
+            if file and file.filename != '':  # Only proceed if a file is selected
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(current_app.config['IMAGE_FOLDER'], filename)
 
                 try:
                     # Save the file to the profile_pics folder
                     file.save(file_path)
-                    
+
                     # Open the saved image
                     image = Image.open(file_path)
 
@@ -759,18 +777,17 @@ def edit_profile():
 
                     # Update the profile picture in the database
                     current_user.profile_picture = filename
-                    db.session.commit()  # Commit the database change here
                 except Exception as e:
                     flash('Error uploading or processing the profile picture. Please try again.', 'danger')
                     print(f"Error saving profile picture: {e}")  # Debugging output
 
-        # Commit changes to the database if no file is uploaded
-        if 'profile_picture' not in request.files:
-            db.session.commit()
+        # Commit the changes to the database, including form data updates and optional profile picture
+        db.session.commit()
 
         # Flash success message and redirect to the profile page
         flash('Your profile has been updated successfully!', 'success')
         return redirect(url_for('views.account'))
+
     else:
         # If form is not validated, print errors for debugging
         for field, errors in edit_form.errors.items():
