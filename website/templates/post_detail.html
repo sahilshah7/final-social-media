@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="post bg-dark text-light p-4 rounded shadow-sm">
+    <div class="post p-4 rounded shadow-sm">
         <div class="d-flex align-items-center mb-4">
             {% if post.author.profile_picture %}
             <img src="{{ url_for('static', filename='profile_pics/' + post.author.profile_picture) }}" alt="Profile Picture" class="rounded-circle border border-light" style="width: 50px; height: 50px; margin-right: 15px;">
@@ -81,25 +81,22 @@
 <!-- JavaScript to handle post sharing -->
 <script>
 function sharePost(postUrl) {
-    // Create a temporary input element to copy the URL
     var tempInput = document.createElement("input");
     document.body.appendChild(tempInput);
     tempInput.value = postUrl;
     tempInput.select();
     document.execCommand("copy");
     document.body.removeChild(tempInput);
-    
-    // Display an alert to inform the user
     alert("Post link copied to clipboard!");
 }
 </script>
 
 <!-- Styles -->
 <style>
+    /* Light Mode */
     body {
-        background-color: #181818;
-        color: #eaeaea;
-        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        color: #333;
     }
 
     .container {
@@ -109,15 +106,12 @@ function sharePost(postUrl) {
     }
 
     .post {
-        background-color: #2b2b2b;
+        background-color: #fff;
+        border: 1px solid #ccc; /* Light grey border for light mode */
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         padding: 20px;
         margin-bottom: 20px;
-    }
-
-    .post-content {
-        text-align: center;
     }
 
     .post-content img {
@@ -127,7 +121,7 @@ function sharePost(postUrl) {
     }
 
     .post-actions {
-        border-top: 1px solid #444;
+        border-top: 1px solid #ccc;
         padding-top: 10px;
         margin-top: 10px;
     }
@@ -142,17 +136,14 @@ function sharePost(postUrl) {
         color: #fff;
     }
 
-    .actions .btn {
-        margin-right: 10px;
+    .btn-outline-light {
+        border-color: #4da8da;
+        color: #4da8da;
     }
 
-    .actions .btn:hover {
+    .btn-outline-light:hover {
         background-color: #4da8da;
         color: #fff;
-    }
-
-    .ms-auto {
-        margin-left: auto;
     }
 
     .btn-outline-success {
@@ -163,6 +154,61 @@ function sharePost(postUrl) {
     .btn-outline-success:hover {
         background-color: #4da8da;
         color: #fff;
+    }
+
+    .ms-auto {
+        margin-left: auto;
+    }
+
+    /* Dark Mode */
+    .dark-mode body {
+        background-color: #181818;
+        color: #eaeaea;
+    }
+
+    .dark-mode .post {
+        background-color: #2b2b2b;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .dark-mode .post-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        border-color: #333;
+    }
+
+    .dark-mode .post-actions {
+        border-top: 1px solid #444;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+
+    .dark-mode .post-actions .btn {
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+    }
+
+    .dark-mode .post-actions .btn:hover {
+        background-color: #4da8da;
+        color: #fff;
+    }
+
+    .dark-mode .btn-outline-light {
+        border-color: #fff;
+        color: #fff;
+    }
+
+    .dark-mode .btn-outline-success {
+        border-color: #4da8da;
+        color: #fff;
+    }
+
+    .dark-mode .post .text-warning {
+        color: #ffcc00;
     }
 </style>
 {% endblock %}

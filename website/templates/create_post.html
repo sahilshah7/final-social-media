@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-5">
     <h1 class="text-center">Create a Post</h1>
-        <!-- Centered form -->
+    <!-- Centered form -->
     <div class="d-flex justify-content-center">
         <form method="POST" action="{{ url_for('views.create_post', forum_id=forum.id) }}" enctype="multipart/form-data" class="text-center w-100" style="max-width: 500px;">
             {{ form.hidden_tag() }}
@@ -28,18 +28,13 @@
     </div>
 </div>
 
-<!-- Styles for dark theme -->
+<!-- Styles for both light and dark modes -->
 <style>
+    /* Light Mode */
     body {
-        background-color: #181818;
-        color: #eaeaea;
+        background-color: #fff;
+        color: #000;
         font-family: 'Roboto', sans-serif;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding-top: 30px;
     }
 
     h1 {
@@ -51,7 +46,7 @@
 
     .form-label {
         font-weight: bold;
-        color: #eaeaea;
+        color: #333;
         display: block;
         margin-bottom: 10px;
     }
@@ -118,11 +113,26 @@
         max-width: 100%;
         border: 1px solid #4da8da;
         padding: 5px;
-        background-color: #333;
+        background-color: #f9f9f9;
         border-radius: 4px;
         margin-top: 20px;
     }
 
+    /* Dark Mode */
+    .dark-mode body {
+        background-color: #181818;
+        color: #eaeaea;
+    }
+
+    .dark-mode .form-label {
+        color: #eaeaea;
+    }
+
+    .dark-mode #imagePreview {
+        background-color: #333;
+    }
+
+    /* Media Queries */
     @media (max-width: 768px) {
         .container {
             padding: 20px;

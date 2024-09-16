@@ -51,7 +51,7 @@ def create_app():
     app.config['WTF_CSRF_ENABLED'] = True  # Enable CSRF protection
     
     # Configure UPLOAD_FOLDER for profile picture uploads
-    app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'profile_pics')
+    app.config['IMAGE_FOLDER'] = os.path.join(app.static_folder, 'profile_pics')
     app.config['UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'uploads')
 
     # Ensure the upload folder exists

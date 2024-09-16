@@ -616,7 +616,7 @@ def delete_post(post_id):
 def account():
     """Render the account page if within the allowed time window."""
     access_allowed = is_within_online_window()
-    
+
     # Debug statement for checking access status
     print(f"Access allowed: {access_allowed}")
 
@@ -625,13 +625,32 @@ def account():
 
     edit_form = EditAccountForm()
     delete_form = DeleteAccountForm()
-    
+
     # Handle account update
     if edit_form.validate_on_submit():
+        # Handle profile picture upload
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file and file.filename != '':  # Ensure a file is selected
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(current_app.config['IMAGE_FOLDER'], filename)
+
+                try:
+                    # Save the file to the upload folder
+                    file.save(file_path)
+                    
+                    # Update the profile picture in the database
+                    current_user.profile_picture = filename
+                except Exception as e:
+                    flash('Error uploading profile picture.', 'danger')
+                    print(f"Error saving profile picture: {e}")
+        
+        # Update other account details
         current_user.name = edit_form.name.data
         current_user.bio = edit_form.bio.data
         current_user.website = edit_form.website.data
         current_user.gender = edit_form.gender.data
+
         db.session.commit()
         flash('Account updated successfully!', 'success')
         return redirect(url_for('views.account'))
@@ -642,6 +661,12 @@ def account():
         db.session.commit()
         flash('Account deleted successfully', 'success')
         return redirect(url_for('auth.login'))
+
+    # Fetch the follower and following counts
+    followers_list = current_user.followers.all()  # Users following the current user
+    following_list = current_user.following.all()  # Users the current user is following
+    followers_count = len(followers_list)
+    following_count = len(following_list)
 
     # Pre-fill the form with current user data for GET request
     if request.method == 'GET':
@@ -654,7 +679,11 @@ def account():
         'account.html',
         user=current_user,
         edit_form=edit_form,
-        delete_form=delete_form
+        delete_form=delete_form,
+        followers_list=followers_list,
+        following_list=following_list,
+        followers_count=followers_count,
+        following_count=following_count
     )
 
 @views.route('/delete_comment/<int:comment_id>', methods=['POST'])
@@ -700,10 +729,10 @@ def edit_profile():
             file = request.files['profile_picture']
             if file and file.filename != '':  # Ensure a file is selected
                 filename = secure_filename(file.filename)
-                file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                file_path = os.path.join(current_app.config['IMAGE_FOLDER'], filename)
 
                 try:
-                    # Save the file to the upload folder
+                    # Save the file to the profile_pics folder
                     file.save(file_path)
                     
                     # Open the saved image
@@ -730,12 +759,14 @@ def edit_profile():
 
                     # Update the profile picture in the database
                     current_user.profile_picture = filename
+                    db.session.commit()  # Commit the database change here
                 except Exception as e:
                     flash('Error uploading or processing the profile picture. Please try again.', 'danger')
                     print(f"Error saving profile picture: {e}")  # Debugging output
 
-        # Commit changes to the database
-        db.session.commit()
+        # Commit changes to the database if no file is uploaded
+        if 'profile_picture' not in request.files:
+            db.session.commit()
 
         # Flash success message and redirect to the profile page
         flash('Your profile has been updated successfully!', 'success')

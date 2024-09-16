@@ -30,6 +30,7 @@ Notifications
 
 {% block styles %}
 <style>
+    /* Notifications Header */
     .notifications-header {
         font-size: 2rem;
         font-weight: bold;
@@ -38,12 +39,15 @@ Notifications
         text-align: center;
     }
 
+    /* Notification Item */
     .notification-item {
         padding: 15px 10px;
         margin-bottom: 10px;
         border-bottom: 1px solid #ddd;
+        background-color: #f9f9f9;
     }
 
+    /* Notification Text */
     .notification-text {
         display: flex;
         justify-content: space-between;
@@ -52,19 +56,25 @@ Notifications
     }
 
     .notification-message {
-        color: #b3d9ff; /* Light blue color */
+        color: #333;
         font-size: 1.2rem;
+        flex: 1;
     }
 
     .notification-time {
         font-size: 0.9rem;
         color: #888;
+        margin-left: 20px;
+        white-space: nowrap;
     }
 
+    /* View Post Button */
     .btn-info {
         background-color: #4da8da;
         border-color: #4da8da;
         color: #fff;
+        margin-left: 10px;
+        white-space: nowrap;
     }
 
     .btn-info:hover {
@@ -72,6 +82,7 @@ Notifications
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
+    /* Responsive Styles */
     @media (max-width: 768px) {
         .notification-item {
             padding: 10px;
@@ -80,6 +91,43 @@ Notifications
         .notifications-header {
             font-size: 1.5rem;
         }
+
+        .notification-text {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .notification-time {
+            margin-left: 0;
+            margin-top: 5px;
+        }
+
+        .btn-info {
+            margin-top: 5px;
+        }
+    }
+
+    /* Dark Mode Styles */
+    .dark-mode .notification-item {
+        background-color: #1c1c1c;
+        border-bottom: 1px solid #333;
+    }
+
+    .dark-mode .notification-message {
+        color: #eaeaea;
+    }
+
+    .dark-mode .notification-time {
+        color: #b3b3b3;
+    }
+
+    .dark-mode .btn-info {
+        background-color: #4da8da;
+        color: #fff;
+    }
+
+    .dark-mode .btn-info:hover {
+        background-color: #2c91bb;
     }
 </style>
 {% endblock %}

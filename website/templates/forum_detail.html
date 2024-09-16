@@ -94,11 +94,12 @@
     </div>
 </div>
 
-<!-- Styles -->
+<!-- Styles for both dark and light modes -->
 <style>
+    /* Light Mode */
     body {
-        background-color: #181818;
-        color: #eaeaea;
+        background-color: #fff;
+        color: #000;
         font-family: 'Inter', sans-serif;
     }
 
@@ -136,9 +137,9 @@
     }
 
     .list-group-item {
-        background-color: #282828;
-        color: #eaeaea;
-        border: 1px solid #444;
+        background-color: #f9f9f9;
+        color: #000;
+        border: 1px solid #ccc;
         margin-bottom: 10px;
         padding: 20px;
         border-radius: 8px;
@@ -146,9 +147,9 @@
     }
 
     .list-group-item:hover {
-        background-color: #3a3a3a;
-        color: #fff;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        background-color: #eaeaea;
+        color: #000;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .post-avatar {
@@ -174,7 +175,7 @@
     }
 
     .post-author:hover {
-        color: #73c9eb;
+        color: #2c91bb;
     }
 
     .post-image-container {
@@ -205,7 +206,7 @@
     }
 
     .alert-info {
-        background-color: #2c91bb;
+        background-color: #4da8da;
         color: #fff;
         border-radius: 6px;
         padding: 15px;
@@ -213,15 +214,15 @@
     }
 
     .alert-info:hover {
-        background-color: #1f6eaa;
+        background-color: #2c91bb;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    /* Updated Pagination styling */
+    /* Pagination styling */
     .pagination-wrapper {
         text-align: center;
         position: relative;
-        margin-top: 40px;
+        margin-top: 80px;
         width: auto;
     }
 
@@ -231,7 +232,7 @@
     }
 
     .pagination .page-item .custom-page-link {
-        background-color: #333;
+        background-color: #f9f9f9;
         border: 2px solid #4da8da;
         color: #4da8da;
         border-radius: 50%;
@@ -245,49 +246,50 @@
         transition: background-color 0.3s ease, transform 0.2s ease, color 0.3s ease;
     }
 
-    /* Hover effect */
     .pagination .page-item:hover .custom-page-link {
-        background-color: #2c91bb;
+        background-color: #4da8da;
         color: #ffffff;
         transform: scale(1.05);
     }
 
-    /* Active page button styling */
     .pagination .active .custom-page-link {
         background-color: #4da8da;
         color: #ffffff;
     }
 
-    /* Pagination arrows */
-    .pagination .page-item .custom-page-link span {
-        font-weight: bold;
-        font-size: 1.5rem;
+    /* Dark Mode */
+    .dark-mode body {
+        background-color: #181818;
+        color: #eaeaea;
+    }
+
+    .dark-mode .list-group-item {
+        background-color: #282828;
+        color: #eaeaea;
+        border: 1px solid #444;
+    }
+
+    .dark-mode .list-group-item:hover {
+        background-color: #3a3a3a;
+        color: #fff;
+    }
+
+    .dark-mode .post-author:hover {
+        color: #73c9eb;
     }
 
     /* Responsive styles */
     @media (max-width: 768px) {
         .pagination-wrapper {
             text-align: center;
-            position: relative; /* This keeps it relative to the page, not fixed */
+            position: relative;
             margin-top: 40px;
             width: auto;
-            left: 30%; /* Move the button more to the left (adjust this percentage) */
-            transform: translateX(-30%); /* Adjust this based on how far left you want to move it */
-        }
-
-        .pagination .page-link {
-            width: 40px;
-            height: 40px;
-            background-color: #333;
-            border-color: #4da8da;
-            color: #f0f0f0;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            border-radius: 50%;
         }
 
         .pagination .custom-page-link {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
         }
     }
 </style>

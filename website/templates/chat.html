@@ -5,17 +5,107 @@ AI Chat
 {% endblock %}
 
 {% block content %}
-<div id="chat-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh;">
-    <div id="messages" style="width: 100%; max-width: 600px; border: 2px solid #4da8da; border-radius: 10px; padding: 15px; height: 60vh; overflow-y: auto; background-color: #1c1c1c; color: #f0f0f0; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
-        <p id="initial-message" style="margin: 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #f0f0f0; text-align: center;">Type something in the box to talk with AI!</p>
+<div id="chat-container" class="chat-container">
+    <div id="messages" class="chat-messages">
+        <p id="initial-message" class="initial-message">Type something in the box to talk with AI!</p>
     </div>
-    <div style="width: 100%; max-width: 600px; display: flex; align-items: center; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);">
-        <input type="text" id="user-input" placeholder="Type a message..." style="flex: 1; padding: 15px; border: 1px solid #4da8da; background-color: #2c2c2c; color: #f0f0f0; border-radius: 5px 0 0 5px; font-size: 1rem; outline: none; transition: border-color 0.3s ease;">
-        <button id="send-btn" onclick="sendMessage()" style="padding: 15px 25px; background-color: #4da8da; color: #fff; border: none; border-radius: 0 5px 5px 0; cursor: pointer; font-size: 1rem; transition: background-color 0.3s ease, transform 0.2s;">
-            Send
-        </button>
+    <div class="chat-input-section">
+        <input type="text" id="user-input" placeholder="Type a message..." class="chat-input">
+        <button id="send-btn" onclick="sendMessage()" class="chat-send-btn">Send</button>
     </div>
 </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* Light mode styling */
+    body {
+        background-color: #fff;
+        color: #000;
+    }
+
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 80vh;
+    }
+
+    .chat-messages {
+        width: 100%;
+        max-width: 600px;
+        border: 2px solid #4da8da;
+        border-radius: 10px;
+        padding: 15px;
+        height: 60vh;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+        color: #000;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .initial-message {
+        margin: 0;
+        padding: 10px;
+        background-color: #e0e0e0;
+        border-radius: 5px;
+        color: #333;
+        text-align: center;
+    }
+
+    .chat-input-section {
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: 15px;
+        border: 1px solid #4da8da;
+        background-color: #fff;
+        color: #000;
+        border-radius: 5px 0 0 5px;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.3s ease;
+    }
+
+    .chat-send-btn {
+        padding: 15px 25px;
+        background-color: #4da8da;
+        color: #fff;
+        border: none;
+        border-radius: 0 5px 5px 0;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s ease, transform 0.2s;
+    }
+
+    /* Dark mode styling */
+    .dark-mode .chat-messages {
+        background-color: #1c1c1c;
+        color: #f0f0f0;
+    }
+
+    .dark-mode .initial-message {
+        background-color: #2a2a2a;
+        color: #f0f0f0;
+    }
+
+    .dark-mode .chat-input {
+        background-color: #2c2c2c;
+        color: #f0f0f0;
+    }
+
+    .dark-mode .chat-send-btn {
+        background-color: #4da8da;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -31,19 +121,15 @@ AI Chat
             return;
         }
 
-        // Remove the initial message if it exists
         if (initialMessage) {
             initialMessage.remove();
         }
 
-        // Display user's message
         messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #4da8da; text-align: right;">You: ${input}</p>`;
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-        // Clear the input field
         document.getElementById('user-input').value = '';
 
-        // Add "AI is typing..." indicator
         const typingIndicator = document.createElement('p');
         typingIndicator.style = 'margin: 10px 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #f0f0f0;';
         typingIndicator.innerText = 'AI is typing...';
@@ -64,26 +150,24 @@ AI Chat
             }
 
             const data = await response.json();
-            typingIndicator.remove(); // Remove the typing indicator when a response is received
+            typingIndicator.remove();
 
             if (data.error) {
                 console.error("Error from backend:", data.error);
                 messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #ff4d4d; border-radius: 5px; color: #fff;">Error: ${data.error}</p>`;
             } else {
-                // Simulate typing delay for realism
                 setTimeout(() => {
                     messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #333; border-radius: 5px; color: #f0f0f0;">AI: ${data.response}</p>`;
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }, 1000);  // 1 second delay for realism
+                }, 1000);
             }
         } catch (error) {
             console.error("Fetch error:", error);
-            typingIndicator.remove(); // Remove typing indicator if there's an error
+            typingIndicator.remove();
             messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #ff4d4d; border-radius: 5px; color: #fff;">Fetch error: ${error}</p>`;
         }
     }
 
-    // Enhance the button hover and active states
     const sendButton = document.getElementById('send-btn');
     sendButton.addEventListener('mouseover', () => {
         sendButton.style.backgroundColor = '#2c91bb';

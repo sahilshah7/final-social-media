@@ -11,24 +11,24 @@
         <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm blue-ring" style="width: 120px; height: 120px;">
         {% endif %}
         
-        <h3 class="text-light">{{ user.username or user.first_name }}</h3>
-        <p class="text-muted">{{ user.bio or "No bio added yet." }}</p>
+        <h3 class="profile-username">{{ user.username or user.first_name }}</h3>
+        <p class="profile-bio">{{ user.bio or "No bio added yet." }}</p>
 
         <div class="d-flex justify-content-center mb-3">
             <div class="px-2">
-                <button class="btn btn-link text-light" data-toggle="modal" data-target="#followersModal">
+                <button class="btn btn-link followers-link" data-toggle="modal" data-target="#followersModal">
                     Followers: <strong>{{ followers|length }}</strong>
                 </button>
             </div>
             <div class="px-2">
-                <button class="btn btn-link text-light" data-toggle="modal" data-target="#followingModal">
+                <button class="btn btn-link following-link" data-toggle="modal" data-target="#followingModal">
                     Following: <strong>{{ following|length }}</strong>
                 </button>
             </div>
         </div>
 
         <!-- Display user's birthday -->
-        <p class="text-light"><strong>Birthday:</strong> {{ user.birthday.strftime('%B %d, %Y') if user.birthday else 'Not provided' }}</p>
+        <p class="profile-birthday"><strong>Birthday:</strong> {{ user.birthday.strftime('%B %d, %Y') if user.birthday else 'Not provided' }}</p>
         
         <!-- Follow/Unfollow Button -->
         <form method="POST" action="{{ url_for('views.follow', user_id=user.id) }}" class="mt-2">
@@ -40,7 +40,7 @@
                         {% set is_following = True %}
                     {% endif %}
                 {% endfor %}
-                <button type="submit" class="btn btn-outline-light">
+                <button type="submit" class="btn btn-outline-primary">
                     {% if is_following %}
                         Unfollow
                     {% else %}
@@ -51,11 +51,11 @@
         </form>
     </div>
 
-    <hr class="border-secondary">
+    <hr class="profile-divider">
 
     <!-- User Posts Section -->
     <div class="user-posts">
-        <h4 class="text-light mb-4">Posts</h4>
+        <h4 class="profile-post-title mb-4">Posts</h4>
         <div class="posts-grid">
             {% for post in user.posts %}
             <div class="post-box">
@@ -73,7 +73,7 @@
                 </a>
             </div>
             {% else %}
-            <p class="text-muted">This user hasn't posted anything yet.</p>
+            <p class="no-posts-message">This user hasn't posted anything yet.</p>
             {% endfor %}
         </div>
     </div>
@@ -91,16 +91,34 @@
             </div>
             <div class="modal-body">
                 <ul class="list-unstyled">
-                    {% for follower in followers %}
-                    <li class="media my-3">
-                        <img src="{{ url_for('static', filename='profile_pics/' + (follower.follower_user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="rounded-circle mr-3 blue-ring" style="width: 50px; height: 50px;">
-                        <div class="media-body">
-                            <h5 class="mt-0 mb-1"><a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}" class="text-light">{{ follower.follower_user.username or follower.follower_user.first_name }}</a></h5>
-                        </div>
-                    </li>
+                    {% if followers %}
+                        {% for follower in followers %}
+                        <li class="media my-3">
+                            <div class="col-auto">
+                                {% if follower.follower_user.profile_picture %}
+                                <img src="{{ url_for('static', filename='profile_pics/' + follower.follower_user.profile_picture) }}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle mr-3 blue-ring" 
+                                     style="width: 50px; height: 50px;">
+                                {% else %}
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" 
+                                     alt="Default Profile Picture" 
+                                     class="rounded-circle mr-3 blue-ring" 
+                                     style="width: 50px; height: 50px;">
+                                {% endif %}
+                            </div>
+                            <div class="media-body">
+                                <h5 class="mt-0 mb-1">
+                                    <a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}" class="profile-follower-name">
+                                        {{ follower.follower_user.username or follower.follower_user.first_name }}
+                                    </a>
+                                </h5>
+                            </div>
+                        </li>
+                        {% endfor %}
                     {% else %}
-                    <li class="text-muted">No followers yet.</li>
-                    {% endfor %}
+                        <li class="no-followers-message">No followers yet.</li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -119,91 +137,78 @@
             </div>
             <div class="modal-body">
                 <ul class="list-unstyled">
-                    {% for follow in following %}
-                    <li class="media my-3">
-                        <img src="{{ url_for('static', filename='profile_pics/' + (follow.followed_user.profile_picture or 'default.png')) }}" alt="Profile Picture" class="rounded-circle mr-3 blue-ring" style="width: 50px; height: 50px;">
-                        <div class="media-body">
-                            <h5 class="mt-0 mb-1"><a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}" class="text-light">{{ follow.followed_user.username or follow.followed_user.first_name }}</a></h5>
-                        </div>
-                    </li>
+                    {% if following %}
+                        {% for follow in following %}
+                        <li class="media my-3">
+                            <div class="col-auto">
+                                {% if follow.followed_user.profile_picture %}
+                                <img src="{{ url_for('static', filename='profile_pics/' + follow.followed_user.profile_picture) }}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle mr-3 blue-ring" 
+                                     style="width: 50px; height: 50px;">
+                                {% else %}
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" 
+                                     alt="Default Profile Picture" 
+                                     class="rounded-circle mr-3 blue-ring" 
+                                     style="width: 50px; height: 50px;">
+                                {% endif %}
+                            </div>
+                            <div class="media-body">
+                                <h5 class="mt-0 mb-1">
+                                    <a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}" class="profile-following-name">
+                                        {{ follow.followed_user.username or follow.followed_user.first_name }}
+                                    </a>
+                                </h5>
+                            </div>
+                        </li>
+                        {% endfor %}
                     {% else %}
-                    <li class="text-muted">Not following anyone yet.</li>
-                    {% endfor %}
+                        <li class="no-following-message">Not following anyone yet.</li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Styles -->
+<!-- Styles for light and dark modes -->
 <style>
+  /* General Styles */
   .container {
       max-width: 900px;
   }
 
   .profile-header img, .media img {
       border: 2px solid #4da8da; /* Blue ring */
-      padding: 2px; /* Slight padding around the image */
+      padding: 2px;
   }
 
-  hr {
+  .profile-divider {
       border-top: 1px solid #495057;
   }
 
-  .btn-outline-light {
-      color: #f8f9fa;
-      border-color: #17a2b8;
+  .btn-outline-primary {
+      color: #4da8da;
+      border-color: #4da8da;
   }
 
-  .btn-outline-light:hover {
-      background-color: #17a2b8;
+  .btn-outline-primary:hover {
+      background-color: #4da8da;
       color: #fff;
   }
 
   .btn-link {
-      color: #f8f9fa;
+      color: #4da8da;
       text-decoration: none;
   }
 
   .btn-link:hover {
-      color: #17a2b8;
+      color: #2c91bb;
       text-decoration: underline;
   }
 
   .media {
       align-items: center;
-  }
-
-  .modal-content {
-      background-color: #2b2b2b;
-      color: #eaeaea;
-      border: none;
-  }
-
-  .modal-header {
-      border-bottom: 1px solid #444;
-  }
-
-  .modal-title {
-      color: #f8f9fa;
-  }
-
-  .modal-body {
-      padding: 1.5rem;
-  }
-
-  .modal-footer {
-      border-top: 1px solid #444;
-  }
-
-  .list-unstyled a {
-      color: #4da8da;
-      text-decoration: none;
-  }
-
-  .list-unstyled a:hover {
-      color: #17a2b8;
-      text-decoration: underline;
   }
 
   /* Posts Grid Layout */
@@ -214,7 +219,6 @@
   }
 
   .post-box {
-      background-color: #333;
       border-radius: 10px;
       padding: 15px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -247,14 +251,82 @@
 
   .post-title {
       font-size: 1.1rem;
-      color: #EAEAEA;
       font-weight: bold;
   }
 
   .post-snippet {
-      color: #b3b3b3;
       font-size: 0.9rem;
       margin-top: 5px;
+  }
+
+  /* Light Mode */
+  body {
+      background-color: #f9f9f9;
+      color: #333;
+  }
+
+  .profile-header h3, .profile-bio, .profile-birthday, .no-posts-message {
+      color: #333;
+  }
+
+  .post-box {
+      background-color: #fff;
+      border: 1px solid #ccc;
+  }
+
+  .post-title {
+      color: #333;
+  }
+
+  .post-snippet {
+      color: #666;
+  }
+
+  .modal-content {
+      background-color: #fff;
+      color: #333;
+  }
+
+  .modal-dialog {
+    position: relative; /* Allows top and left to move the modal */
+    top: 200px; /* Move down */
+    left: 130px; /* Move right */
+  }
+
+  .modal-header, .modal-footer {
+      border-bottom: 1px solid #ccc;
+  }
+
+  /* Dark Mode */
+  .dark-mode body {
+      background-color: #181818;
+      color: #eaeaea;
+  }
+
+  .dark-mode .profile-header h3, .dark-mode .profile-bio, .dark-mode .profile-birthday, .dark-mode .no-posts-message {
+      color: #eaeaea;
+  }
+
+  .dark-mode .post-box {
+      background-color: #333;
+      border: 1px solid #444;
+  }
+
+  .dark-mode .post-title {
+      color: #eaeaea;
+  }
+
+  .dark-mode .post-snippet {
+      color: #b3b3b3;
+  }
+
+  .dark-mode .modal-content {
+      background-color: #2b2b2b;
+      color: #eaeaea;
+  }
+
+  .dark-mode .modal-header, .dark-mode .modal-footer {
+      border-top: 1px solid #444;
   }
 </style>
 {% endblock %}

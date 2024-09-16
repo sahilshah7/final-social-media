@@ -18,16 +18,19 @@
     <title>{% block title %}SpotLight{% endblock %}</title>
     {% block styles %}{% endblock %}
     <style>
-        html {
-            scroll-behavior: smooth;
-            overflow-y: scroll;
+        html, body {
+            height: 100%;
+            margin: 0; /* Remove default margin */
+            padding: 0; /* Remove default padding */
+            background-color: #fff; /* White background for light mode */
+            color: #000; /* Black text color for light mode */
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
         }
 
-        body {
-            background-color: #181818;
+        .dark-mode body {
+            background-color: #181818; /* Grey background for dark mode */
             color: #f0f0f0;
-            font-family: 'Inter', sans-serif;
-            overflow-y: scroll;
         }
 
         /* Sidebar for navigation */
@@ -38,7 +41,7 @@
             height: 100%;
             width: 260px;
             background-color: #000;
-            padding-top: 20px;
+            padding-top: 10px;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
@@ -48,11 +51,11 @@
 
         /* Navbar brand */
         .navbar-brand {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: bold;
             color: #4da8da;
-            padding: 15px;
-            margin-bottom: 30px;
+            padding: 10px;
+            margin-bottom: 15px;
             text-align: left;
             padding-left: 20px;
             display: flex;
@@ -64,28 +67,30 @@
             margin-right: 10px;
         }
 
-        .sidebar a {
+        /* Sidebar links */
+        .sidebar a, #darkModeToggle {
             display: flex;
             align-items: center;
             padding: 16px 30px;
-            color: #b3b3b3;
+            color: #e0e0e0; /* Updated text color */
             font-size: 18px;
             text-decoration: none;
             transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
         }
 
-        .sidebar a i {
-            margin-right: 10px;
-            font-size: 1.2rem; /* Adjust icon size */
+        .sidebar a i, #darkModeToggle i {
+            margin-right: 15px; /* Ensures proper space between icon and text */
+            font-size: 1.2rem;
         }
 
-        .sidebar a:hover {
+        .sidebar a:hover, #darkModeToggle:hover {
             background-color: #333;
             transform: scale(1.02);
             color: #fff;
         }
 
-        .sidebar a.active {
+        .sidebar a.active, #darkModeToggle.active {
             color: #4da8da;
             font-weight: bold;
             background-color: rgba(77, 168, 218, 0.25);
@@ -93,12 +98,10 @@
         }
 
         .main-content {
-            margin-left: 280px;
-            padding: 40px;
-            background-color: #181818;
-            border-radius: 8px;
-            color: #f0f0f0;
-            padding-bottom: 60px; /* Add padding to accommodate the footer */
+            margin-left: 280px; /* Adjust so the content doesn't overlap the sidebar */
+            padding: 10px; /* Reduce padding to move content higher up */
+            background-color: transparent;
+            min-height: 100vh; /* Ensure it takes the full height of the viewport */
         }
 
         .btn-primary {
@@ -135,16 +138,16 @@
             z-index: 1050;
         }
 
-        html, body {
-            height: 100%;
-            overflow-x: hidden;
-        }
-
         .card {
-            background-color: #333;
-            color: #f0f0f0;
+            background-color: #fff; /* White card for light mode */
+            color: #000; /* Black text color for light mode */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: box-shadow 0.3s ease;
+        }
+
+        .dark-mode .card {
+            background-color: #333; /* Dark card for dark mode */
+            color: #f0f0f0; /* Light text for dark mode */
         }
 
         .card:hover {
@@ -152,9 +155,14 @@
         }
 
         .form-control {
-            background-color: #333;
-            color: #f0f0f0;
+            background-color: #fff; /* White input field for light mode */
+            color: #000; /* Black text color for light mode */
             border-color: #4da8da;
+        }
+
+        .dark-mode .form-control {
+            background-color: #333; /* Dark input field for dark mode */
+            color: #f0f0f0; /* Light text for dark mode */
         }
 
         .form-control::placeholder {
@@ -167,7 +175,7 @@
             color: #f0f0f0;
             padding: 10px;
             text-align: center;
-            font-size: 0.75rem; /* Tiny font size */
+            font-size: 0.75rem;
             position: fixed;
             left: 0;
             bottom: 0;
@@ -180,7 +188,6 @@
 
         /* Media queries for mobile devices */
         @media (max-width: 768px) {
-            /* Make the sidebar disappear on smaller screens */
             .sidebar {
                 position: static;
                 width: 100%;
@@ -194,13 +201,6 @@
                 padding: 20px;
             }
 
-            /* Adjust navigation links for mobile */
-            .sidebar a {
-                padding: 12px 15px;
-                font-size: 16px;
-            }
-
-            /* Tiny footer adjustments */
             .tiny-footer {
                 font-size: 0.65rem;
             }
@@ -210,26 +210,31 @@
 <body>
     <!-- Sidebar for navigation -->
     <div class="sidebar">
-        <a class="navbar-brand" href="/">
-            <img src="{{ url_for('static', filename='images/Black and Green Simple Online Shop Website Logo.png') }}" alt="SpotLight Logo">
-            SpotLight
-        </a>
+        <div>
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='images/Black and Green Simple Online Shop Website Logo.png') }}" alt="SpotLight Logo">
+                SpotLight
+            </a>
     
-        <!-- Navigation links -->
-        <a href="{{ url_for('views.account') }}" class="{% if request.path == url_for('views.account') %}active{% endif %}"><i class="fas fa-user"></i> Account</a>
-        <a href="{{ url_for('views.forum_detail', forum_id=1) }}" class="{% if request.path == url_for('views.forum_detail', forum_id=1) %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>
-        <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
-        <a href="{{ url_for('views.chat') }}" class="{% if request.path == url_for('views.chat') %}active{% endif %}"><i class="fas fa-robot"></i> AI Chat</a>
-        
-        <!-- Only display Log Out if the user is authenticated -->
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            {% if current_user.email == "sahilshah07@gmail.com" %}
-                <a href="{{ url_for('auth.sign_up') }}" class="nav-link"><i class="fas fa-user-plus"></i> Sign Up</a>
+            <!-- Navigation links -->
+            <a href="{{ url_for('views.account') }}" class="{% if request.path == url_for('views.account') %}active{% endif %}"><i class="fas fa-user"></i> Account</a>
+            <a href="{{ url_for('views.forum_detail', forum_id=1) }}" class="{% if request.path == url_for('views.forum_detail', forum_id=1) %}active{% endif %}"><i class="fas fa-comments"></i> Forums</a>
+            <a href="{{ url_for('views.notifications') }}" class="{% if request.path == url_for('views.notifications') %}active{% endif %}"><i class="fas fa-bell"></i> Notifications</a>
+            <a href="{{ url_for('views.chat') }}" class="{% if request.path == url_for('views.chat') %}active{% endif %}"><i class="fas fa-robot"></i> AI Chat</a>
+    
+            <!-- Dark Mode Toggle Button -->
+            <a href="#" id="darkModeToggle" class="nav-link"><i class="fas fa-moon"></i> Disable Dark Mode</a>
+            
+            <!-- Only display Log Out if the user is authenticated -->
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                {% if current_user.email == "sahilshah07@gmail.com" %}
+                    <a href="{{ url_for('auth.sign_up') }}" class="nav-link"><i class="fas fa-user-plus"></i> Sign Up</a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
             {% endif %}
-        {% else %}
-            <a href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
-        {% endif %}
+        </div>
     </div>
 
     <div class="main-content">
@@ -266,12 +271,33 @@
 
     <!-- Tiny Footer -->
     <footer class="tiny-footer">
-        <p>No Giving Information. No Asking For Things.</p>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script>
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const body = document.body;
+
+        // Check if dark mode is already enabled in local storage
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            body.classList.add('dark-mode');
+            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i> Disable Dark Mode';
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('darkMode', 'enabled');
+                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i> Disable Dark Mode';
+            } else {
+                localStorage.removeItem('darkMode');
+                darkModeToggle.innerHTML = '<i class="fas fa-moon"></i> Enable Dark Mode';
+            }
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

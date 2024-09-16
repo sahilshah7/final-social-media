@@ -33,10 +33,10 @@
             <!-- Followers and Following -->
             <div class="profile-stats mt-3">
                 <button class="btn btn-link" data-toggle="modal" data-target="#followersModal">
-                    <strong>{{ followers | length }}</strong> followers
+                    <strong>{{ followers_count }}</strong> followers
                 </button>
                 <button class="btn btn-link ml-2" data-toggle="modal" data-target="#followingModal">
-                    <strong>{{ following | length }}</strong> following
+                    <strong>{{ following_count }}</strong> following
                 </button>
             </div>
         </div>
@@ -122,14 +122,27 @@
             </div>
             <div class="modal-body">
                 <ul class="list-group">
-                    {% if followers | length > 0 %}
-                    {% for follower in followers %}
-                    <li class="list-group-item follower-item">
-                        <a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}" class="follower-link">{{ follower.follower_user.first_name }}</a>
-                    </li>
-                    {% endfor %}
+                    {% if followers_list | length > 0 %}
+                        {% for follower in followers_list %}
+                        <li class="list-group-item d-flex align-items-center">
+                            <div class="col-auto">
+                                {% if follower.follower_user.profile_picture %}
+                                <img src="{{ url_for('static', filename='profile_pics/' + follower.follower_user.profile_picture) }}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle mr-3" 
+                                     style="width: 50px; height: 50px;">
+                                {% else %}
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" 
+                                     alt="Default Profile Picture" 
+                                     class="rounded-circle mr-3" 
+                                     style="width: 50px; height: 50px;">
+                                {% endif %}
+                            </div>
+                            <a href="{{ url_for('views.public_account', user_id=follower.follower_id) }}" class="follower-link">{{ follower.follower_user.first_name }}</a>
+                        </li>
+                        {% endfor %}
                     {% else %}
-                    <p class="text-center">No followers yet.</p>
+                        <p class="text-center">No followers yet.</p>
                     {% endif %}
                 </ul>
             </div>
@@ -147,14 +160,27 @@
             </div>
             <div class="modal-body">
                 <ul class="list-group">
-                    {% if following | length > 0 %}
-                    {% for follow in following %}
-                    <li class="list-group-item following-item">
-                        <a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}" class="following-link">{{ follow.followed_user.first_name }}</a>
-                    </li>
-                    {% endfor %}
+                    {% if following_list | length > 0 %}
+                        {% for follow in following_list %}
+                        <li class="list-group-item d-flex align-items-center">
+                            <div class="col-auto">
+                                {% if follow.followed_user.profile_picture %}
+                                <img src="{{ url_for('static', filename='profile_pics/' + follow.followed_user.profile_picture) }}" 
+                                     alt="Profile Picture" 
+                                     class="rounded-circle mr-3" 
+                                     style="width: 50px; height: 50px;">
+                                {% else %}
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" 
+                                     alt="Default Profile Picture" 
+                                     class="rounded-circle mr-3" 
+                                     style="width: 50px; height: 50px;">
+                                {% endif %}
+                            </div>
+                            <a href="{{ url_for('views.public_account', user_id=follow.followed_id) }}" class="following-link">{{ follow.followed_user.first_name }}</a>
+                        </li>
+                        {% endfor %}
                     {% else %}
-                    <p class="text-center">No following yet.</p>
+                        <p class="text-center">No following yet.</p>
                     {% endif %}
                 </ul>
             </div>
@@ -162,53 +188,41 @@
     </div>
 </div>
 
-<!-- Styles for Modals and List Items -->
+<!-- Styles -->
 <style>
-    /* Modal styles for dark theme */
-    .modal-content {
-        background-color: #222;
-        color: #eaeaea;
+    /* Light Mode Styles */
+    :root {
+        --background-color: #ffffff;
+        --text-color: #000000;
+        --box-bg-color: #f0f0f0;
+        --highlight-color: #4da8da;
+        --hover-color: #2c91bb;
+        --border-color: #4da8da;
     }
-    .modal-header {
-        border-bottom: 1px solid #444;
-    }
-    .modal-title {
-        color: #4da8da;
-    }
-    .modal-body p {
-        color: #b3b3b3;
-    }
-    .modal-body .list-group-item {
-        background-color: #333;
-        border: 1px solid #444;
-        color: #eaeaea;
-    }
-    .modal-body .list-group-item:hover {
-        background-color: #444;
-    }
-    .modal-body .list-group-item a {
-        color: #4da8da;
-        text-decoration: none;
-    }
-    .modal-body .list-group-item a:hover {
-        color: #73c9eb;
-    }
-    .close {
-        color: #eaeaea;
-    }
-</style>
 
-<!-- Styles for profile layout -->
-<style>
+    /* Dark Mode Styles */
+    .dark-mode {
+        --background-color: #181818;
+        --text-color: #eaeaea;
+        --box-bg-color: #333333;
+        --highlight-color: #4da8da;
+        --hover-color: #2c91bb;
+        --border-color: #4da8da;
+    }
+
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+
     .profile-container {
         max-width: 900px;
         margin: 0 auto;
         padding: 20px;
-        color: #eaeaea;
     }
 
     .profile-header {
-        border-bottom: 1px solid #333;
+        border-bottom: 1px solid var(--box-bg-color);
         padding-bottom: 20px;
     }
 
@@ -217,51 +231,46 @@
         height: 150px;
         border-radius: 50%;
         object-fit: cover;
-        border: 2px solid #4da8da;
+        border: 2px solid var(--highlight-color);
     }
 
     .username {
         font-size: 1.8rem;
         margin-bottom: 0;
-        color: #4da8da;
+        color: var(--highlight-color);
     }
 
     .profile-stats button {
         background: none;
         border: none;
-        color: #4da8da;
+        color: var(--highlight-color);
         font-size: 1rem;
         font-weight: bold;
         cursor: pointer;
     }
 
-    .nav-link {
-        color: #eaeaea;
+    #posts-tab, #saved-tab {
+        color: #333 !important;
         font-weight: bold;
         padding: 10px 20px;
     }
 
-    .nav-link.active {
-        border-top: 2px solid #4da8da;
+    .dark-mode #posts-tab, .dark-mode #saved-tab {
+        color: #eaeaea !important; /* Lighter color for dark mode */
     }
 
-    /* Post Grid Styling */
-    .post-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      justify-items: center;
-  }
+    .nav-link.active {
+        border-top: 2px solid var(--highlight-color);
+    }
 
-
+    /* Post Box Styling */
     .post-box {
-        background-color: #333;
+        background-color: var(--box-bg-color);
         border-radius: 10px;
         padding: 15px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         transition: transform 0.3s ease;
         text-align: center;
-        max-width: px;
         width: 100%;
     }
 
@@ -277,25 +286,43 @@
         border-radius: 8px;
     }
 
-    .post-info {
-        margin-top: 10px;
+    .modal-content {
+        background-color: var(--box-bg-color);
+        color: var(--text-color);
     }
 
-    .post-title {
-        font-size: 1.1rem;
-        color: #EAEAEA;
-        font-weight: bold;
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
     }
 
-    .post-snippet {
-        color: #b3b3b3;
-        font-size: 0.9rem;
-        margin-top: 5px;
+    .modal-title {
+        color: var(--highlight-color);
     }
 
-    /* Remove the "Untitled" text */
-    .post-title:empty {
-        display: none;
+    .modal-body p {
+        color: var(--text-color);
+        padding: 1.5rem;
+        max-height: 60vh; 
+        overflow-y: auto;
+    }
+
+    .list-group-item {
+        background-color: var(--box-bg-color);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+    .list-group-item:hover {
+        background-color: var(--hover-color);
+    }
+
+    .list-group-item a {
+        color: var(--highlight-color);
+        text-decoration: none;
+    }
+
+    .list-group-item a:hover {
+        color: #73c9eb;
     }
 
     /* Adjustments for smaller screens */

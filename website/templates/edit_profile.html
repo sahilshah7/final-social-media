@@ -24,38 +24,33 @@
                     <input type="file" name="profile_picture" class="form-control-file" id="profile_picture" accept="image/*">
                 </div>
 
-                <!-- First Name Field -->
+                <!-- Form Fields -->
                 <div class="form-group">
                     <label for="first_name">First Name</label>
                     {{ edit_form.first_name(class="form-control", id="first_name", placeholder="Enter your first name", aria_label="First Name") }}
                 </div>
 
-                <!-- Name Field -->
                 <div class="form-group">
                     <label for="name">Name</label>
                     {{ edit_form.name(class="form-control", id="name", placeholder="Enter your name", aria_label="Name") }}
                 </div>
 
-                <!-- Email Field -->
                 <div class="form-group">
                     <label for="email">Email</label>
                     {{ edit_form.email(class="form-control", id="email", placeholder="Enter your email", aria_label="Email") }}
                 </div>
 
-                <!-- Bio Field -->
                 <div class="form-group">
                     <label for="bio">Bio</label>
                     {{ edit_form.bio(class="form-control", id="bio", rows="3", placeholder="Write a short bio", aria_label="Bio") }}
                     <small class="form-text text-muted">Max 150 characters.</small>
                 </div>
 
-                <!-- Gender Field -->
                 <div class="form-group">
                     <label for="gender">Gender</label>
-                    {{ edit_form.gender(class="form-control", id="gender", placeholder="Enter your gender", aria_label="Gender") }}
+                    {{ edit_form.gender(class="form-control", id="gender", aria_label="Gender") }}
                 </div>
 
-                <!-- Birthday Field -->
                 <div class="form-group">
                     <label for="birthday">Birthday</label>
                     {{ edit_form.birthday(class="form-control", id="birthday", placeholder="YYYY-MM-DD", aria_label="Birthday") }}
@@ -101,7 +96,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         const profilePicInput = document.getElementById('profile_picture');
         const profilePicPreview = document.getElementById('profilePicPreview');
-        const saveButton = document.getElementById('saveChangesButton');
         let cropper;
 
         // Handle image preview and cropping
@@ -118,7 +112,7 @@
                         cropper.destroy(); // Destroy previous cropper instance
                     }
                     cropper = new Cropper(profilePicPreview, {
-                        aspectRatio: 1, // Ensure it's a circle by setting the aspect ratio to 1:1
+                        aspectRatio: 1, // Circle aspect ratio
                         viewMode: 1,
                         autoCropArea: 1,
                         dragMode: 'move',
@@ -150,14 +144,17 @@
                     // Submit the form with cropped image
                     const xhr = new XMLHttpRequest();
                     xhr.open('POST', '{{ url_for("views.edit_profile") }}', true);
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                            // Handle the successful submission (optional)
+                    xhr.onload = function () {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            // Handle successful submission
                             window.location.href = '{{ url_for("views.account") }}';
+                        } else {
+                            // Handle errors
+                            alert('An error occurred while uploading the profile picture. Please try again.');
                         }
                     };
                     xhr.send(formData);
-                });
+                }, 'image/png'); // Set MIME type for the image
             }
         });
     });

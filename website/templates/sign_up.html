@@ -5,7 +5,7 @@
 <div class="container">
     <form method="POST">
         {{ form.hidden_tag() }}
-        <h3 class="text-center">Sign Up</h3>
+        <h3 class="text-center signup-title">Sign Up</h3>
 
         <!-- Email Field -->
         <div class="form-group">
@@ -94,4 +94,111 @@
         {% endif %}
     {% endwith %}
 </div>
+
+<!-- Styles for light and dark modes -->
+<style>
+    /* Light mode styles */
+    body {
+        background-color: #f9f9f9;
+        color: #333;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding-top: 30px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .text-center {
+        color: #333;
+    }
+
+    .form-group label {
+        color: #555;
+    }
+
+    .form-control {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 10px;
+        box-shadow: none;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #4da8da;
+        box-shadow: 0 0 5px rgba(77, 168, 218, 0.5);
+    }
+
+    .btn-primary {
+        background-color: #4da8da;
+        border-color: #4da8da;
+        color: #fff;
+        padding: 10px 20px;
+        font-size: 1.1rem;
+        border-radius: 6px;
+        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #2c91bb;
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .text-danger {
+        font-size: 0.9rem;
+    }
+
+    /* Dark mode styles */
+    .dark-mode body {
+        background-color: #181818;
+        color: #eaeaea;
+    }
+
+    .dark-mode .container {
+        background-color: #2b2b2b;
+        border: 1px solid #444;
+    }
+
+    .dark-mode .form-group label {
+        color: #eaeaea;
+    }
+
+    .dark-mode .form-control {
+        background-color: #333;
+        border: 1px solid #444;
+        color: #eaeaea;
+    }
+
+    .dark-mode .form-control:focus {
+        border-color: #4da8da;
+        box-shadow: 0 0 5px rgba(77, 168, 218, 0.5);
+    }
+
+    .dark-mode .btn-primary {
+        background-color: #4da8da;
+        border-color: #4da8da;
+        color: #fff;
+    }
+
+    .dark-mode .btn-primary:hover {
+        background-color: #2c91bb;
+    }
+
+    .dark-mode .text-danger {
+        color: #ff4d4d;
+    }
+
+    /* Blue title in dark mode */
+    .dark-mode .signup-title {
+        color: #4da8da;
+    }
+</style>
 {% endblock %}
