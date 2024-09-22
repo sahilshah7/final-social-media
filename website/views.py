@@ -35,7 +35,6 @@ scheduler.start()
 views = Blueprint('views', __name__)
 logging.basicConfig(level=logging.DEBUG)
 meeting_bp = Blueprint('meeting_bp', __name__)  # Define meeting_bp for meeting-related routes
-generator = pipeline('text-generation', model='EleutherAI/gpt-neo-2.7B')
 scheduler_bp = Blueprint('scheduler_bp', __name__)
 
 ZOOM_CLIENT_ID = '7vHLopUdQSaZ7BQpPfO5gQ'
@@ -44,89 +43,12 @@ ZOOM_ACCOUNT_ID = 'ZObsKZODREywXjz3MLPixQ'  # Server-to-Server OAuth apps requir
 ZOOM_AUTH_URL = "https://zoom.us/oauth/token"
 ZOOM_API_URL = "https://api.zoom.us/v2/users/me/meetings"
 
-model_id = "facebook/blenderbot-400M-distill"
+model_id = "facebook/blenderbot-90M"  # Use the smaller BlenderBot variant
 tokenizer = BlenderbotTokenizer.from_pretrained(model_id)
 model = BlenderbotForConditionalGeneration.from_pretrained(model_id)
 
 # Load profanity filter
 profanity.load_censor_words()
-
-DAILY_LIMIT = 60
-
-# Route to manually reset the timer
-@views.route('/reset_timer')
-@login_required
-def reset_timer():
-    """Manually reset the user's timer and redirect them back to the home page."""
-    
-    # Reset session's timer information
-    session['start_time'] = datetime.now(pytz.timezone('America/Los_Angeles'))  # Reset start time
-    session['time_spent'] = 0  # Reset time spent to zero
-    
-    # Set a session flag to notify the frontend to reset the visual timer
-    session['timer_reset'] = True  # This will be picked up by the frontend script
-
-    flash("Your timer has been reset to 60 minutes.", "success")
-
-    # Redirect to home page
-    return redirect(url_for('views.home'))
-
-
-# Function to check the time limit for a session
-def check_time_limit():
-    timezone = pytz.timezone('America/Los_Angeles')
-    current_time = datetime.now(timezone)
-
-    # Define the reset time as 11:59 PM today
-    reset_time = current_time.replace(hour=23, minute=59, second=59, microsecond=0)
-    print(f"[DEBUG] Current time: {current_time}, Reset time: {reset_time}")
-
-    # Reset the timer for a new day
-    if 'last_visit' not in session or session['last_visit'].date() != current_time.date():
-        session['start_time'] = current_time  # Set start time for a new day
-        session['time_spent'] = 0  # Reset time spent for the day
-        session['last_visit'] = current_time  # Update last visit
-        session['timer_reset'] = True  # Notify frontend that the timer was reset
-
-        print(f"[DEBUG] Timer reset for the new day at {current_time}. Session start time: {session['start_time']}")
-    else:
-        # Calculate time spent in the session
-        if 'start_time' in session:
-            start_time = session['start_time'].replace(tzinfo=timezone)
-        else:
-            start_time = current_time
-
-        time_spent_this_session = (current_time - start_time).total_seconds() / 60  # in minutes
-
-        # Ensure that the total time spent does not exceed 60 minutes
-        if 'time_spent' in session:
-            session['time_spent'] = min(session['time_spent'] + time_spent_this_session, 60)
-        else:
-            session['time_spent'] = time_spent_this_session
-
-        print(f"[DEBUG] Total time spent today: {session['time_spent']} minutes")
-
-        if session['time_spent'] >= 60:
-            print(f"[DEBUG] Time limit exceeded: {session['time_spent']} minutes spent today.")
-            return False  # Time limit exceeded
-
-        session['start_time'] = current_time  # Update start time
-
-    session['last_visit'] = current_time  # Update last visit
-    remaining_time = 60 - session['time_spent']
-    print(f"[DEBUG] Remaining time: {remaining_time} minutes")
-    return max(remaining_time, 0)
-
-
-# Route to get the remaining time
-@views.route('/get_remaining_time', methods=['GET'])
-@login_required
-def get_remaining_time():
-    remaining_time = check_time_limit()
-    if remaining_time is False:
-        remaining_time = 0  # No time left
-    return jsonify({"remaining_time": remaining_time})
-
 
 @views.route('/chat', methods=['GET', 'POST'])
 def chat():
@@ -134,12 +56,6 @@ def chat():
 
     """Home route to display suggested posts, accounts, and handle Zoom meeting redirection."""
 
-    # Check if the user has exceeded the 60-minute daily time limit
-    remaining_time = check_time_limit()
-
-    if remaining_time is False:  # If time limit is exceeded, redirect
-        return redirect(url_for('views.access_restricted'))
-    
     if request.method == 'POST':
         try:
             user_message = request.json.get('message').strip().lower()
@@ -161,7 +77,7 @@ def chat():
             print(f"Error: {e}")
             return jsonify({'error': f'Failed to generate a response: {str(e)}'}), 500
 
-    return render_template('chat.html', remaining_time=remaining_time)
+    return render_template('chat.html')
 
 def send_zoom_reminder(app, zoom_meeting_url, meeting_time):
     print("Sending reminder emails...")  # Check if this prints out
@@ -308,14 +224,6 @@ def schedule_weekly_meetings(app):
 @views.route('/')
 def home():
     """Home route to display suggested posts, accounts, and handle Zoom meeting redirection."""
-
-    # Check if the user has exceeded the 60-minute daily time limit
-    remaining_time = check_time_limit()  # Returns remaining time in minutes or None
-
-    # Redirect if the time limit is exceeded
-    if remaining_time is None:
-        return redirect(url_for('views.access_restricted'))  # Redirect to restricted page
-
     # Pagination setup: Get page number from query string, default to 1 if not present
     page = request.args.get('page', 1, type=int)
     per_page = 8  # Number of suggested posts to display per page
@@ -361,9 +269,8 @@ def home():
     return render_template(
         'home.html', 
         suggested_posts=suggested_posts,  # Pass the Pagination object to the template
-        suggested_accounts=suggested_accounts, 
-        remaining_time=remaining_time  # Pass the list of suggested accounts
-    )
+        suggested_accounts=suggested_accounts  
+      )
 
 # Meeting room route
 @meeting_bp.route('/meeting_room')
@@ -663,12 +570,6 @@ def forums(forum_id):
 @views.route('/forum/<int:forum_id>', methods=['GET'])
 @login_required  # Ensure only logged-in users can access the forum
 def forum_detail(forum_id):
-
-    # Check if the user has exceeded the 60-minute daily time limit
-    remaining_time = check_time_limit()
-
-    if remaining_time is False:  # If time limit is exceeded, redirect
-        return redirect(url_for('views.access_restricted'))
     
     # Get the page number from the query string, default to 1
     page = request.args.get('page', 1, type=int)
@@ -681,7 +582,7 @@ def forum_detail(forum_id):
     notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.timestamp.desc()).all()
 
     # Render the forum detail template with posts and notifications
-    return render_template('forum_detail.html', forum=forum, forum_posts=forum_posts, notifications=notifications, remaining_time=remaining_time)
+    return render_template('forum_detail.html', forum=forum, forum_posts=forum_posts, notifications=notifications)
 
 @views.route('/post/<int:post_id>/comment', methods=['POST'])
 @login_required
@@ -732,12 +633,6 @@ def delete_post(post_id):
 @login_required
 def account():
     """Render the account page with a 60-minute daily time limit."""
-
-    # Check if the user has exceeded the 60-minute daily time limit
-    remaining_time = check_time_limit()
-
-    if remaining_time is False:  # Redirect if the time limit is exceeded
-        return redirect(url_for('views.access_restricted'))
     
     edit_form = EditAccountForm()
     delete_form = DeleteAccountForm()
@@ -793,8 +688,7 @@ def account():
         followers_list=followers_list,
         following_list=following_list,
         followers_count=followers_count,
-        following_count=following_count,
-        remaining_time=remaining_time  # Pass remaining time to template
+        following_count=following_count
     )
 
 @views.route('/delete_comment/<int:comment_id>', methods=['POST'])

@@ -247,57 +247,32 @@
                 // Redirect to time limit exceeded page when timer ends
                 if (--timer < 0) {
                     clearInterval(interval);
-                    localStorage.removeItem('remainingTime'); // Clear stored time on limit
                     window.location.href = "{{ url_for('views.access_restricted') }}"; // Redirect to restricted page
-                } else {
-                    // Store the remaining time in localStorage to persist across reloads
-                    localStorage.setItem('remainingTime', timer);
                 }
             }, 1000);
         }
         
         // Function to reset the timer
         function resetTimer() {
-            localStorage.setItem('remainingTime', 3600); // Reset to 60 minutes (3600 seconds)
             location.reload(); // Reload the page to restart the timer
         }
         
-        // Function to check if a new day has started, and reset the timer if so
-        function checkAndResetTimer() {
-            let now = new Date();
-            let lastResetDate = localStorage.getItem('lastResetDate');
-        
-            // If it's a new day (past midnight) or there's no last reset date
-            if (!lastResetDate || new Date(lastResetDate).toDateString() !== now.toDateString()) {
-                resetTimer(); // Reset the timer if it's a new day
-                localStorage.setItem('lastResetDate', now.toISOString());
-            }
-        }
-        
         window.onload = function () {
-            checkAndResetTimer(); // Check and reset timer if it's a new day
-        
-            // Get remaining time from the backend (passed as a context variable from Flask)
-            let remainingTimeFromBackend = {{ remaining_time | tojson }}; // Remaining time in seconds
-            
-            // Retrieve remaining time from localStorage or fallback to backend time
-            let remainingTime = localStorage.getItem('remainingTime') ? localStorage.getItem('remainingTime') : remainingTimeFromBackend;
-            
             let display = document.querySelector('#timer');
-        
+    
             // Initialize the timer display
             display.textContent = "Time Left: Loading...";
-        
-            // Start countdown with the remaining time
-            startTimer(remainingTime, display);
+            
+            // Start countdown with a full 60 minutes
+            startTimer(3600, display);
             display.style.visibility = "visible"; // Show the timer once loaded
-        
+    
             // Add event listener to reset button
             let resetButton = document.querySelector('#resetTimerButton');
             if (resetButton) {
                 resetButton.addEventListener('click', resetTimer);
             }
         };
-        </script>
+    </script>
 </body>
 </html>
