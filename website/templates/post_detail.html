@@ -73,7 +73,8 @@
                 {{ highfive_form.hidden_tag() }}
                 <button type="submit" class="btn btn-outline-success btn-sm">Give High Five</button>
             </form>
-            <span class="ml-3 text-light" style="margin-left: 10px;">{{ highfives }} High Fives</span>
+            <!-- Updated the span with class "high-five-count" -->
+            <span class="ml-3 high-five-count" style="margin-left: 10px;">{{ highfives }} High Fives</span>
         </div>
     </div>
 </div>
@@ -105,9 +106,14 @@ function sharePost(postUrl) {
         padding: 20px;
     }
 
+    .high-five-count {
+        color: black !important; /* Ensure the color is black with !important */
+        font-weight: bold; /* Optionally make it bold */
+    }
+
     .post {
         background-color: #fff;
-        border: 1px solid #ccc; /* Light grey border for light mode */
+        border: 1px solid #6a0dad; /* Purple border for light mode */
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         padding: 20px;
@@ -121,7 +127,7 @@ function sharePost(postUrl) {
     }
 
     .post-actions {
-        border-top: 1px solid #ccc;
+        border-top: 1px solid #6a0dad; /* Purple line for separation */
         padding-top: 10px;
         margin-top: 10px;
     }
@@ -132,27 +138,27 @@ function sharePost(postUrl) {
     }
 
     .post-actions .btn:hover {
-        background-color: #4da8da;
+        background-color: #6a0dad;
         color: #fff;
     }
 
     .btn-outline-light {
-        border-color: #4da8da;
-        color: #4da8da;
+        border-color: #6a0dad;
+        color: #6a0dad;
     }
 
     .btn-outline-light:hover {
-        background-color: #4da8da;
+        background-color: #6a0dad;
         color: #fff;
     }
 
     .btn-outline-success {
-        border-color: #4da8da;
-        color: #4da8da;
+        border-color: #6a0dad;
+        color: #6a0dad;
     }
 
     .btn-outline-success:hover {
-        background-color: #4da8da;
+        background-color: #6a0dad;
         color: #fff;
     }
 
@@ -193,7 +199,7 @@ function sharePost(postUrl) {
     }
 
     .dark-mode .post-actions .btn:hover {
-        background-color: #4da8da;
+        background-color: #6a0dad;
         color: #fff;
     }
 
@@ -203,7 +209,7 @@ function sharePost(postUrl) {
     }
 
     .dark-mode .btn-outline-success {
-        border-color: #4da8da;
+        border-color: #6a0dad;
         color: #fff;
     }
 

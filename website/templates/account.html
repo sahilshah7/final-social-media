@@ -13,9 +13,9 @@
         </div>
         <div class="col">
             <h1 class="username">{{ current_user.first_name }} {{ current_user.last_name }}</h1>
-            <p>{{ current_user.bio or 'No bio added yet.' }}</p>
+            <p class="text-dark">{{ current_user.bio or 'No bio added yet.' }}</p>
 
-            <p><strong>Birthday:</strong> 
+            <p class="text-dark"><strong>Birthday:</strong> 
                 {% if current_user.birthday %}
                 {{ current_user.birthday.strftime('%B %d, %Y') }}
                 {% else %}
@@ -23,11 +23,13 @@
                 {% endif %}
             </p>
             
-            <p><strong>Gender:</strong> {{ current_user.gender or 'Prefer not to say' }}</p>
+            <p class="text-dark"><strong>Gender:</strong> {{ current_user.gender or 'Prefer not to say' }}</p>
 
             <!-- Edit Profile Button -->
             <div class="d-flex align-items-center mt-3">
-                <a href="{{ url_for('views.edit_profile') }}" class="btn btn-outline-primary ml-3">Edit Profile</a>
+                {% if current_user.email == "sahilshah07@gmail.com" %}
+                <a href="{{ url_for('views.edit_profile', user_id=current_user.id) }}" class="btn btn-outline-primary ml-3">Edit Profile</a>
+                {% endif %}
             </div>
 
             <!-- Followers and Following -->
@@ -190,29 +192,19 @@
 
 <!-- Styles -->
 <style>
-    /* Light Mode Styles */
     :root {
         --background-color: #ffffff;
-        --text-color: #000000;
+        --text-color: #6a0dad; /* Purple text color */
         --box-bg-color: #f0f0f0;
-        --highlight-color: #4da8da;
-        --hover-color: #2c91bb;
-        --border-color: #4da8da;
-    }
-
-    /* Dark Mode Styles */
-    .dark-mode {
-        --background-color: #181818;
-        --text-color: #eaeaea;
-        --box-bg-color: #333333;
-        --highlight-color: #4da8da;
-        --hover-color: #2c91bb;
-        --border-color: #4da8da;
+        --highlight-color: #6a0dad; /* Purple for highlights and borders */
+        --hover-color: #4da8da;
+        --border-color: #6a0dad;
     }
 
     body {
         background-color: var(--background-color);
         color: var(--text-color);
+        overflow-y: scroll; /* Enable scrolling */
     }
 
     .profile-container {
@@ -249,29 +241,17 @@
         cursor: pointer;
     }
 
-    #posts-tab, #saved-tab {
-        color: #333 !important;
-        font-weight: bold;
-        padding: 10px 20px;
-    }
-
-    .dark-mode #posts-tab, .dark-mode #saved-tab {
-        color: #eaeaea !important; /* Lighter color for dark mode */
-    }
-
     .nav-link.active {
         border-top: 2px solid var(--highlight-color);
     }
 
-    /* Post Box Styling */
-    .post-box {
-        background-color: var(--box-bg-color);
-        border-radius: 10px;
-        padding: 15px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease;
-        text-align: center;
-        width: 100%;
+    .nav-link {
+    color: #000000 !important; /* Makes the text black with !important */
+    }
+
+    .post-box, .post-image-container {
+    border: 1px solid #6a0dad; /* Purple color with a thin 1px border */
+    border-radius: 8px; /* Optional: Add rounded corners if needed */
     }
 
     .post-box:hover {
@@ -299,13 +279,6 @@
         color: var(--highlight-color);
     }
 
-    .modal-body p {
-        color: var(--text-color);
-        padding: 1.5rem;
-        max-height: 60vh; 
-        overflow-y: auto;
-    }
-
     .list-group-item {
         background-color: var(--box-bg-color);
         border: 1px solid var(--border-color);
@@ -316,16 +289,6 @@
         background-color: var(--hover-color);
     }
 
-    .list-group-item a {
-        color: var(--highlight-color);
-        text-decoration: none;
-    }
-
-    .list-group-item a:hover {
-        color: #73c9eb;
-    }
-
-    /* Adjustments for smaller screens */
     @media (max-width: 768px) {
         .profile-header {
             flex-direction: column;
@@ -342,7 +305,6 @@
     }
 </style>
 
-<!-- Script to handle tab switching -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const tabs = document.querySelectorAll('.nav-link');
@@ -353,11 +315,9 @@
                 e.preventDefault();
                 const targetContent = document.querySelector(this.getAttribute('href'));
 
-                // Remove active class from all tabs and contents
                 tabs.forEach(t => t.classList.remove('active'));
                 tabContents.forEach(content => content.classList.remove('show', 'active'));
 
-                // Add active class to clicked tab and the corresponding content
                 this.classList.add('active');
                 targetContent.classList.add('show', 'active');
             });

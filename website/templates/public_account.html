@@ -6,9 +6,9 @@
 <div class="container mt-4">
     <div class="profile-header text-center mb-4">
         {% if user.profile_picture %}
-        <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm blue-ring" style="width: 120px; height: 120px;">
+        <img src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm purple-ring" style="width: 120px; height: 120px;">
         {% else %}
-        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm blue-ring" style="width: 120px; height: 120px;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Profile Picture" class="rounded-circle mb-3 shadow-sm purple-ring" style="width: 120px; height: 120px;">
         {% endif %}
         
         <h3 class="profile-username">{{ user.username or user.first_name }}</h3>
@@ -30,25 +30,10 @@
         <!-- Display user's birthday -->
         <p class="profile-birthday"><strong>Birthday:</strong> {{ user.birthday.strftime('%B %d, %Y') if user.birthday else 'Not provided' }}</p>
         
-        <!-- Follow/Unfollow Button -->
-        <form method="POST" action="{{ url_for('views.follow', user_id=user.id) }}" class="mt-2">
-            {{ form.hidden_tag() }} <!-- CSRF token field -->
-            <div class="form-group">
-                {% set is_following = False %}
-                {% for f in followers %}
-                    {% if current_user.id == f.follower_id %}
-                        {% set is_following = True %}
-                    {% endif %}
-                {% endfor %}
-                <button type="submit" class="btn btn-outline-primary">
-                    {% if is_following %}
-                        Unfollow
-                    {% else %}
-                        Follow
-                    {% endif %}
-                </button>
-            </div>
-        </form>
+        <!-- Display the Edit Profile button only for the admin -->
+        {% if current_user.email == 'sahilshah07@gmail.com' %}
+        <a href="{{ url_for('views.edit_profile', user_id=user.id) }}" class="btn btn-outline-primary mt-3">Edit Profile</a>
+        {% endif %}
     </div>
 
     <hr class="profile-divider">
@@ -98,12 +83,12 @@
                                 {% if follower.follower_user.profile_picture %}
                                 <img src="{{ url_for('static', filename='profile_pics/' + follower.follower_user.profile_picture) }}" 
                                      alt="Profile Picture" 
-                                     class="rounded-circle mr-3 blue-ring" 
+                                     class="rounded-circle mr-3 purple-ring" 
                                      style="width: 50px; height: 50px;">
                                 {% else %}
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" 
                                      alt="Default Profile Picture" 
-                                     class="rounded-circle mr-3 blue-ring" 
+                                     class="rounded-circle mr-3 purple-ring" 
                                      style="width: 50px; height: 50px;">
                                 {% endif %}
                             </div>
@@ -144,12 +129,12 @@
                                 {% if follow.followed_user.profile_picture %}
                                 <img src="{{ url_for('static', filename='profile_pics/' + follow.followed_user.profile_picture) }}" 
                                      alt="Profile Picture" 
-                                     class="rounded-circle mr-3 blue-ring" 
+                                     class="rounded-circle mr-3 purple-ring" 
                                      style="width: 50px; height: 50px;">
                                 {% else %}
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" 
                                      alt="Default Profile Picture" 
-                                     class="rounded-circle mr-3 blue-ring" 
+                                     class="rounded-circle mr-3 purple-ring" 
                                      style="width: 50px; height: 50px;">
                                 {% endif %}
                             </div>
@@ -179,31 +164,31 @@
   }
 
   .profile-header img, .media img {
-      border: 2px solid #4da8da; /* Blue ring */
+      border: 2px solid #6a0dad; /* Purple ring */
       padding: 2px;
   }
 
   .profile-divider {
-      border-top: 1px solid #495057;
+      border-top: 1px solid #6a0dad;
   }
 
   .btn-outline-primary {
-      color: #4da8da;
-      border-color: #4da8da;
+      color: #6a0dad;
+      border-color: #6a0dad;
   }
 
   .btn-outline-primary:hover {
-      background-color: #4da8da;
+      background-color: #6a0dad;
       color: #fff;
   }
 
   .btn-link {
-      color: #4da8da;
+      color: #6a0dad;
       text-decoration: none;
   }
 
   .btn-link:hover {
-      color: #2c91bb;
+      color: #4e0784;
       text-decoration: underline;
   }
 
@@ -218,12 +203,9 @@
       gap: 20px;
   }
 
-  .post-box {
-      border-radius: 10px;
-      padding: 15px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      transition: transform 0.3s ease;
-      text-align: center;
+  .post-box, .post-image-container {
+    border: 1px solid #6a0dad; /* Purple color with a thin 1px border */
+    border-radius: 8px; /* Optional: Add rounded corners if needed */
   }
 
   .post-box:hover {
@@ -252,11 +234,18 @@
   .post-title {
       font-size: 1.1rem;
       font-weight: bold;
+      color: #6a0dad; /* Purple */
+  }
+
+  .modal-dialog {
+    position: relative;
+    top: 300px; /* Adjust this value to move the modal down */
   }
 
   .post-snippet {
       font-size: 0.9rem;
       margin-top: 5px;
+      color: #666;
   }
 
   /* Light Mode */
@@ -274,27 +263,9 @@
       border: 1px solid #ccc;
   }
 
-  .post-title {
-      color: #333;
-  }
-
-  .post-snippet {
-      color: #666;
-  }
-
   .modal-content {
       background-color: #fff;
       color: #333;
-  }
-
-  .modal-dialog {
-    position: relative; /* Allows top and left to move the modal */
-    top: 200px; /* Move down */
-    left: 130px; /* Move right */
-  }
-
-  .modal-header, .modal-footer {
-      border-bottom: 1px solid #ccc;
   }
 
   /* Dark Mode */
@@ -313,7 +284,7 @@
   }
 
   .dark-mode .post-title {
-      color: #eaeaea;
+      color: #6a0dad; /* Purple for dark mode */
   }
 
   .dark-mode .post-snippet {

@@ -26,7 +26,7 @@ def create_notification(user_id, from_user_id, message, post_id=None):
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
+    username = db.Column(db.String(150), nullable=False)
     first_name = db.Column(db.String(150), nullable=False)
     name = db.Column(db.String(150), nullable=False)
     last_name = db.Column(db.String(150), nullable=True)
@@ -39,7 +39,7 @@ class User(db.Model, UserMixin):
     website = db.Column(db.String(100), nullable=True)
     show_suggestions = db.Column(db.Boolean, default=False)
     birthday = db.Column(db.Date, nullable=True)  # New field for birthday
-
+    
     posts = db.relationship('ForumPost', backref='author', lazy=True, cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='author', lazy=True, cascade='all, delete-orphan')
     likes = db.relationship('Like', backref='user', lazy=True, cascade='all, delete-orphan')

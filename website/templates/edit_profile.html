@@ -8,17 +8,17 @@
             <h2 class="text-center">Edit Profile</h2>
 
             <!-- Profile Edit Form -->
-            <form method="POST" action="{{ url_for('views.edit_profile') }}" enctype="multipart/form-data" id="profileForm">
+            <form method="POST" action="{{ url_for('views.edit_profile', user_id=user.id) }}" enctype="multipart/form-data" id="profileForm">
                 {{ edit_form.hidden_tag() }} <!-- CSRF Token -->
 
                 <!-- Profile Picture Upload -->
                 <div class="form-group text-center">
-                    <label for="profile_picture">Upload Profile Picture</label>
+                    <label for="profile_picture" class="form-label">Upload Profile Picture</label>
                     <div class="mb-3 position-relative">
-                        {% if current_user.profile_picture %}
-                        <img id="profilePicPreview" src="{{ url_for('static', filename='profile_pics/' + current_user.profile_picture) }}" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px;">
+                        {% if user.profile_picture %}
+                        <img id="profilePicPreview" src="{{ url_for('static', filename='profile_pics/' + user.profile_picture) }}" alt="Profile Picture" class="img-thumbnail rounded-circle">
                         {% else %}
-                        <img id="profilePicPreview" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px;">
+                        <img id="profilePicPreview" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="Default Profile Picture" class="img-thumbnail rounded-circle">
                         {% endif %}
                     </div>
                     <input type="file" name="profile_picture" class="form-control-file" id="profile_picture" accept="image/*">
@@ -26,39 +26,39 @@
 
                 <!-- Form Fields -->
                 <div class="form-group">
-                    <label for="first_name">First Name</label>
-                    {{ edit_form.first_name(class="form-control", id="first_name", placeholder="Enter your first name", aria_label="First Name") }}
+                    <label for="first_name" class="form-label">First Name</label>
+                    {{ edit_form.first_name(class="form-control", id="first_name", placeholder="Enter first name", aria_label="First Name") }}
                 </div>
 
                 <div class="form-group">
-                    <label for="name">Name</label>
+                    <label for="name" class="form-label">Name</label>
                     {{ edit_form.name(class="form-control", id="name", placeholder="Enter your name", aria_label="Name") }}
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    {{ edit_form.email(class="form-control", id="email", placeholder="Enter your email", aria_label="Email") }}
+                    <label for="email" class="form-label">Email</label>
+                    {{ edit_form.email(class="form-control", id="email", placeholder="Enter email", aria_label="Email") }}
                 </div>
 
                 <div class="form-group">
-                    <label for="bio">Bio</label>
+                    <label for="bio" class="form-label">Bio</label>
                     {{ edit_form.bio(class="form-control", id="bio", rows="3", placeholder="Write a short bio", aria_label="Bio") }}
                     <small class="form-text text-muted">Max 150 characters.</small>
                 </div>
 
                 <div class="form-group">
-                    <label for="gender">Gender</label>
+                    <label for="gender" class="form-label">Gender</label>
                     {{ edit_form.gender(class="form-control", id="gender", aria_label="Gender") }}
                 </div>
 
                 <div class="form-group">
-                    <label for="birthday">Birthday</label>
+                    <label for="birthday" class="form-label">Birthday</label>
                     {{ edit_form.birthday(class="form-control", id="birthday", placeholder="YYYY-MM-DD", aria_label="Birthday") }}
                 </div>
 
                 <!-- Submit Button -->
                 <div class="form-group text-center">
-                    <button type="submit" class="btn btn-primary btn-lg" id="saveChangesButton">Save Changes</button>
+                    <button type="submit" class="btn submit-btn" id="saveChangesButton">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -67,25 +67,83 @@
 
 <!-- Styles for Edit Profile Page -->
 <style>
-    .form-group {
+    /* Purple and white theme for light mode */
+    body {
+        background-color: #ffffff;
+        color: #6a0dad; /* Purple text color */
+        font-family: 'Inter', sans-serif;
+    }
+
+    h2 {
+        color: #6a0dad; /* Purple heading */
+        font-size: 2rem;
         margin-bottom: 20px;
     }
-    .btn-primary {
-        background-color: #4da8da;
-        border-color: #4da8da;
+
+    .form-label {
+        font-weight: bold;
+        color: #6a0dad; /* Purple label */
     }
-    .btn-primary:hover {
-        background-color: #3490dc;
-        border-color: #3490dc;
+
+    .form-control {
+        border: 1px solid #6a0dad;
+        color: #6a0dad;
     }
+
+    .form-control-file {
+        margin-top: 15px;
+    }
+
+    .submit-btn {
+        background-color: #6a0dad; /* Purple button */
+        color: #ffffff;
+        border-color: #6a0dad;
+        font-size: 1.1rem;
+        padding: 10px 20px;
+        width: 200px;
+        border-radius: 6px;
+        margin-top: 20px;
+    }
+
+    .submit-btn:hover {
+        background-color: #4e0784;
+        border-color: #4e0784;
+    }
+
     .img-thumbnail {
-        border-radius: 50%;
         width: 150px;
         height: 150px;
-        object-fit: cover; /* Ensure the image fits the circle */
+        object-fit: cover;
+        border: 2px solid #6a0dad; /* Purple border for profile image */
     }
-    .cropper-container {
-        border-radius: 50%; /* Make cropper view circular */
+
+    .form-text.text-muted {
+        color: #6a0dad; /* Purple hint text */
+    }
+
+    /* Dark Mode */
+    .dark-mode body {
+        background-color: #181818;
+        color: #eaeaea;
+    }
+
+    .dark-mode .form-label, .dark-mode .form-control, .dark-mode .form-text.text-muted {
+        color: #eaeaea;
+    }
+
+    .dark-mode .submit-btn {
+        background-color: #6a0dad;
+    }
+
+    .dark-mode .submit-btn:hover {
+        background-color: #4e0784;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        h2 {
+            font-size: 1.8rem;
+        }
     }
 </style>
 
@@ -155,7 +213,7 @@
         // Function to handle form submission with FormData
         function submitFormWithFormData(formData) {
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', '{{ url_for("views.edit_profile") }}', true);
+            xhr.open('POST', '{{ url_for("views.edit_profile", user_id=user.id) }}', true);
             xhr.onload = function () {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Handle successful submission

@@ -26,7 +26,7 @@
         </div>
         
         <div class="form-group text-center">
-            {{ form.submit(class="btn btn-primary w-100") }}
+            {{ form.submit(class="btn submit-btn w-100") }}
         </div>
         
         <!-- Forgot Password link should be inside the form -->
@@ -39,12 +39,13 @@
 
 <!-- Styles for light and dark modes -->
 <style>
+    /* Purple and white theme for light mode */
     .login-container {
         max-width: 400px;
         margin: 0 auto;
         padding: 30px;
         background-color: #fff;
-        border: 1px solid #ccc;
+        border: 1px solid #6a0dad;
         border-radius: 8px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
@@ -52,13 +53,14 @@
     .form-label {
         font-weight: bold;
         margin-bottom: 5px;
-        color: #333;
+        color: #6a0dad; /* Purple text for labels */
     }
 
     .form-control {
         padding: 10px;
-        border: 1px solid #ccc;
+        border: 1px solid #6a0dad; /* Purple border for input fields */
         border-radius: 4px;
+        color: #6a0dad; /* Purple text color for input fields */
         transition: border-color 0.3s ease;
     }
 
@@ -68,28 +70,33 @@
     }
 
     .form-check-label {
-        color: #333;
+        color: #6a0dad; /* Purple text for checkbox labels */
     }
 
-    .btn-primary {
-        background-color: #4da8da;
-        border-color: #4da8da;
-        transition: background-color 0.3s ease, transform 0.2s ease;
+    .submit-btn {
+        background-color: #6a0dad; /* Purple button */
+        border: 2px solid #4e0784; /* Purple border */
+        color: #fff;
+        font-size: 1.2rem;
+        padding: 12px 20px;
+        border-radius: 6px;
+        transition: background-color 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
     }
 
-    .btn-primary:hover {
-        background-color: #2c91bb;
+    .submit-btn:hover {
+        background-color: #4e0784;
+        border-color: #6a0dad; /* Darker purple border on hover */
         transform: scale(1.05);
     }
 
     .forgot-password-link {
-        color: #4da8da;
+        color: #6a0dad; /* Purple link color */
         text-decoration: none;
         transition: color 0.3s ease;
     }
 
     .forgot-password-link:hover {
-        color: #2c91bb;
+        color: #4e0784;
     }
 
     /* Dark mode styles */
@@ -106,29 +113,30 @@
     .dark-mode .form-control {
         background-color: #333;
         color: #eaeaea;
-        border-color: #444;
+        border-color: #6a0dad; /* Purple border in dark mode */
     }
 
     .dark-mode .form-check-label {
         color: #eaeaea;
     }
 
-    .dark-mode .btn-primary {
-        background-color: #4da8da;
-        border-color: #4da8da;
+    .dark-mode .submit-btn {
+        background-color: #6a0dad; /* Purple button in dark mode */
+        border-color: #6a0dad;
         color: #fff;
     }
 
-    .dark-mode .btn-primary:hover {
-        background-color: #2c91bb;
+    .dark-mode .submit-btn:hover {
+        background-color: #4e0784;
+        border-color: #6a0dad;
     }
 
     .dark-mode .forgot-password-link {
-        color: #4da8da;
+        color: #6a0dad;
     }
 
     .dark-mode .forgot-password-link:hover {
-        color: #2c91bb;
+        color: #4e0784;
     }
 
     .dark-mode .invalid-feedback {

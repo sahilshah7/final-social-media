@@ -4,6 +4,9 @@
 
 {% block content %}
 <div class="home-layout">
+    <!-- Fireworks Canvas -->
+    <canvas id="fireworksCanvas"></canvas>
+
     <!-- Main content area similar to an Instagram feed -->
     <div class="main-section">
         <div class="home-content">
@@ -23,9 +26,9 @@
                                 <a href="{{ url_for('views.post_detail', post_id=post.id) }}" class="post-link">
                                     <div class="post-image-container">
                                         {% if post.image %}
-                                            <img src="{{ url_for('static', filename='uploads/' + post.image) }}" alt="Post Image" class="post-image" loading="lazy">
+                                            <img src="{{ url_for('static', filename='uploads/' + post.image) }}" alt="Post Image" class="post-image lazy" data-src="{{ url_for('static', filename='uploads/' + post.image) }}" loading="lazy">
                                         {% else %}
-                                            <img src="https://via.placeholder.com/250" alt="Placeholder Image" class="post-image" loading="lazy">
+                                            <img src="https://via.placeholder.com/250" alt="Placeholder Image" class="post-image lazy" data-src="https://via.placeholder.com/250" loading="lazy">
                                         {% endif %}
                                     </div>
                                 </a>
@@ -104,22 +107,12 @@
 <style>
   /* Light Mode Styles */
   :root {
-      --background-color: #ffffff;
-      --text-color: #000000;
+      --background-color: #ffffff; /* White background */
+      --text-color: #6a0dad; /* Purple text */
       --box-bg-color: #f0f0f0;
-      --highlight-color: #4da8da;
-      --hover-color: #2c91bb;
-      --border-color: #4da8da;
-  }
-
-  /* Dark Mode Styles */
-  .dark-mode {
-      --background-color: #181818;
-      --text-color: #eaeaea;
-      --box-bg-color: #333333;
-      --highlight-color: #4da8da;
-      --hover-color: #2c91bb;
-      --border-color: #4da8da;
+      --highlight-color: #6a0dad; /* Purple highlight */
+      --hover-color: #4da8da;
+      --border-color: #6a0dad; /* Purple borders */
   }
 
   /* Layout */
@@ -127,6 +120,17 @@
       background-color: var(--background-color);
       color: var(--text-color);
       font-family: 'Inter', sans-serif;
+  }
+
+  /* Full-screen fireworks canvas */
+  #fireworksCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
   }
 
   /* Layout to mimic Instagram's design */
@@ -148,16 +152,15 @@
       color: var(--text-color);
   }
 
-  .suggested-posts {
-      margin-top: 20px;
-      margin-bottom: 40px;
-  }
-
   .suggested-posts h3 {
-      font-size: 1.8rem;
-      margin-top: 0;
-      margin-bottom: 20px;
-      color: var(--highlight-color);
+    font-size: 2rem; /* Increase font size for emphasis */
+    font-weight: 700; /* Bold the text */
+    letter-spacing: 1.5px; /* Add some letter spacing for better readability */
+    margin-top: 0;
+    margin-bottom: 40px; /* Space below the heading */
+    color: var(--highlight-color); /* Purple color for the text */
+    text-align: center; /* Center align the text */
+    position: relative; /* To add an underline effect */
   }
 
   .suggested-post-grid {
@@ -165,18 +168,15 @@
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 20px;
       justify-items: center;
+      margin-top: 60px; /* Adjust as needed */
   }
 
   /* Post box styling */
-  .post-box {
-      background-color: var(--box-bg-color);
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      transition: transform 0.3s ease;
-      width: 100%;
-      max-width: 250px;
+  .post-box, .post-image-container {
+    border: 1px solid #6a0dad; /* Purple color with a thin 1px border */
+    border-radius: 8px; /* Optional: Add rounded corners if needed */
   }
+
 
   .post-box:hover {
       transform: translateY(-5px);
@@ -212,7 +212,7 @@
   /* Styling for list items */
   .list-group-item {
       background-color: var(--box-bg-color);
-      color: var(--text-color);
+      color: #333 !important;
       border-radius: 8px;
       margin-bottom: 10px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -351,5 +351,81 @@
             });
         }
     });
+
+// Fireworks effect
+const canvas = document.getElementById("fireworksCanvas");
+const ctx = canvas.getContext("2d");
+
+// Set canvas size
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+class Firework {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = Math.random() * 2 + 2;  // Larger particles for more visibility
+        this.color = `hsl(${Math.random() * 360}, 100%, 50%)`; // Random colors
+        this.dx = (Math.random() - 0.5) * 10; // Larger spread
+        this.dy = (Math.random() - 0.5) * 10;
+        this.gravity = 0.01;  // Slower gravity effect
+        this.friction = 0.98; // Slower fade for longevity
+        this.explosionRadius = Math.random() * 6 + 4; // Larger explosion size
+    }
+
+    update() {
+        this.dy += this.gravity;
+        this.x += this.dx;
+        this.y += this.dy;
+        this.radius *= this.friction;  // Slowly fade particles out
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+}
+
+let fireworksArray = [];
+
+function addFireworks() {
+    for (let i = 0; i < 20; i++) { // Increase the number of fireworks per burst
+        fireworksArray.push(new Firework(Math.random() * canvas.width, Math.random() * canvas.height));
+    }
+}
+
+function animateFireworks() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    fireworksArray.forEach((firework, index) => {
+        firework.update();
+        firework.draw();
+        if (firework.radius < 0.2) {  // Let fireworks last longer
+            fireworksArray.splice(index, 1);  // Remove if too small
+        }
+    });
+
+    requestAnimationFrame(animateFireworks);
+}
+
+// Trigger fireworks more often and more dramatically
+function startFireworksShow() {
+    const intervalId = setInterval(() => {
+        addFireworks();
+    }, 400); // Fireworks every 400ms
+
+    // Remove fireworks after 10 seconds
+    setTimeout(() => {
+        clearInterval(intervalId);
+        setTimeout(() => {
+            fireworksArray = [];
+            canvas.style.display = "none"; // Hide the canvas after the show
+        }, 5000); // Let remaining fireworks fade out
+    }, 5000); // Fireworks last for 10 seconds now
+}
+
+startFireworksShow();
+animateFireworks();
 </script>
 {% endblock %}

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app
+from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify, current_app, session
 from flask_login import login_required, current_user
 from .models import ForumPost, Comment, Like, User, Follower, Category, Forum, Notification, Upvote, Downvote, HighFive
 from .forms import PostForm, CommentForm, EditAccountForm, DeleteAccountForm, FollowForm, EditProfileForm, HighFiveForm
@@ -26,6 +26,7 @@ from flask import render_template, request, jsonify, redirect, url_for
 from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
 from better_profanity import profanity
 from PIL import Image, ImageDraw
+import uuid
 
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -50,11 +51,95 @@ model = BlenderbotForConditionalGeneration.from_pretrained(model_id)
 # Load profanity filter
 profanity.load_censor_words()
 
+DAILY_LIMIT = 60
+
+# Route to manually reset the timer
+@views.route('/reset_timer')
+@login_required
+def reset_timer():
+    """Manually reset the user's timer and redirect them back to the home page."""
+    
+    # Reset session's timer information
+    session['start_time'] = datetime.now(pytz.timezone('America/Los_Angeles'))  # Reset start time
+    session['time_spent'] = 0  # Reset time spent to zero
+    
+    # Set a session flag to notify the frontend to reset the visual timer
+    session['timer_reset'] = True  # This will be picked up by the frontend script
+
+    flash("Your timer has been reset to 60 minutes.", "success")
+
+    # Redirect to home page
+    return redirect(url_for('views.home'))
+
+
+# Function to check the time limit for a session
+def check_time_limit():
+    timezone = pytz.timezone('America/Los_Angeles')
+    current_time = datetime.now(timezone)
+
+    # Define the reset time as 11:59 PM today
+    reset_time = current_time.replace(hour=23, minute=59, second=59, microsecond=0)
+    print(f"[DEBUG] Current time: {current_time}, Reset time: {reset_time}")
+
+    # Reset the timer for a new day
+    if 'last_visit' not in session or session['last_visit'].date() != current_time.date():
+        session['start_time'] = current_time  # Set start time for a new day
+        session['time_spent'] = 0  # Reset time spent for the day
+        session['last_visit'] = current_time  # Update last visit
+        session['timer_reset'] = True  # Notify frontend that the timer was reset
+
+        print(f"[DEBUG] Timer reset for the new day at {current_time}. Session start time: {session['start_time']}")
+    else:
+        # Calculate time spent in the session
+        if 'start_time' in session:
+            start_time = session['start_time'].replace(tzinfo=timezone)
+        else:
+            start_time = current_time
+
+        time_spent_this_session = (current_time - start_time).total_seconds() / 60  # in minutes
+
+        # Ensure that the total time spent does not exceed 60 minutes
+        if 'time_spent' in session:
+            session['time_spent'] = min(session['time_spent'] + time_spent_this_session, 60)
+        else:
+            session['time_spent'] = time_spent_this_session
+
+        print(f"[DEBUG] Total time spent today: {session['time_spent']} minutes")
+
+        if session['time_spent'] >= 60:
+            print(f"[DEBUG] Time limit exceeded: {session['time_spent']} minutes spent today.")
+            return False  # Time limit exceeded
+
+        session['start_time'] = current_time  # Update start time
+
+    session['last_visit'] = current_time  # Update last visit
+    remaining_time = 60 - session['time_spent']
+    print(f"[DEBUG] Remaining time: {remaining_time} minutes")
+    return max(remaining_time, 0)
+
+
+# Route to get the remaining time
+@views.route('/get_remaining_time', methods=['GET'])
+@login_required
+def get_remaining_time():
+    remaining_time = check_time_limit()
+    if remaining_time is False:
+        remaining_time = 0  # No time left
+    return jsonify({"remaining_time": remaining_time})
+
+
 @views.route('/chat', methods=['GET', 'POST'])
 def chat():
-    if not is_within_online_window():
-        return redirect(url_for('views.access_restricted'))
+    """Handle chat functionality with a 60-minute daily time limit."""
 
+    """Home route to display suggested posts, accounts, and handle Zoom meeting redirection."""
+
+    # Check if the user has exceeded the 60-minute daily time limit
+    remaining_time = check_time_limit()
+
+    if remaining_time is False:  # If time limit is exceeded, redirect
+        return redirect(url_for('views.access_restricted'))
+    
     if request.method == 'POST':
         try:
             user_message = request.json.get('message').strip().lower()
@@ -76,7 +161,7 @@ def chat():
             print(f"Error: {e}")
             return jsonify({'error': f'Failed to generate a response: {str(e)}'}), 500
 
-    return render_template('chat.html')
+    return render_template('chat.html', remaining_time=remaining_time)
 
 def send_zoom_reminder(app, zoom_meeting_url, meeting_time):
     print("Sending reminder emails...")  # Check if this prints out
@@ -220,18 +305,20 @@ def schedule_weekly_meetings(app):
     scheduler.start()
     print("Weekly meeting reminders scheduled.")
 
-# Home route to check for Zoom window and redirect if needed
 @views.route('/')
 def home():
     """Home route to display suggested posts, accounts, and handle Zoom meeting redirection."""
 
-    # Check if access is within the allowed online window (10 AM - 8 PM PST)
-    if not is_within_online_window():
-        return redirect(url_for('views.access_restricted'))
+    # Check if the user has exceeded the 60-minute daily time limit
+    remaining_time = check_time_limit()  # Returns remaining time in minutes or None
+
+    # Redirect if the time limit is exceeded
+    if remaining_time is None:
+        return redirect(url_for('views.access_restricted'))  # Redirect to restricted page
 
     # Pagination setup: Get page number from query string, default to 1 if not present
     page = request.args.get('page', 1, type=int)
-    per_page = 9  # Number of suggested posts to display per page
+    per_page = 8  # Number of suggested posts to display per page
 
     # Fetch suggested posts and accounts with error handling
     try:
@@ -274,7 +361,8 @@ def home():
     return render_template(
         'home.html', 
         suggested_posts=suggested_posts,  # Pass the Pagination object to the template
-        suggested_accounts=suggested_accounts  # Pass the list of suggested accounts
+        suggested_accounts=suggested_accounts, 
+        remaining_time=remaining_time  # Pass the list of suggested accounts
     )
 
 # Meeting room route
@@ -306,7 +394,7 @@ def is_within_online_window():
     
     # Define start and end time for the online window
     start_time = time(10, 0)  # 10 AM
-    end_time = time(20, 0)    # 8 PM (24-hour format)
+    end_time = time(23, 0)    # 8 PM (24-hour format)
     
     # Debugging statements
     print(f"Start time: {start_time}")
@@ -549,40 +637,51 @@ def create_post(forum_id):
 
     return render_template('create_post.html', form=form, forum=forum)
 
-@views.route('/forums')
-def forums():
-    # Check if access is allowed based on the time window
+@views.route('/forums/<int:forum_id>')
+@login_required
+def forums(forum_id):
+    # Existing access check
     access_allowed = is_within_online_window()
-
-    # Debug statement for checking access status
-    views.logger.debug(f"Access allowed: {access_allowed}")
-
-    # Redirect to access restricted page if access is not allowed
     if not access_allowed:
         return redirect(url_for('views.access_restricted'))
 
-    # Redirect to a specific forum detail page by default (e.g., "Managing Intellectual Disabilities")
-    forum_id = 1  # Replace with the appropriate forum ID
-    return redirect(url_for('views.forum_detail', forum_id=forum_id))
+    # Fetch user notifications
+    user_notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.timestamp.desc()).all()
+
+    # Fetch the forum by ID
+    forum = Forum.query.get_or_404(forum_id)
+
+    # Fetch forum posts with pagination (optional)
+    page = request.args.get('page', 1, type=int)
+    forum_posts = ForumPost.query.filter_by(forum_id=forum_id).order_by(ForumPost.date_created.desc()).paginate(page=page, per_page=10)
+
+    return render_template('forum_detail.html', 
+                           notifications=user_notifications, 
+                           forum=forum, 
+                           forum_posts=forum_posts)
 
 @views.route('/forum/<int:forum_id>', methods=['GET'])
+@login_required  # Ensure only logged-in users can access the forum
 def forum_detail(forum_id):
-    # Check if access is within the allowed online window
-    access_allowed = is_within_online_window()
 
-    # Debug statement for checking access status
-    current_app.logger.debug(f"Access allowed: {access_allowed}")
+    # Check if the user has exceeded the 60-minute daily time limit
+    remaining_time = check_time_limit()
 
-    # Redirect to access restricted page if access is not allowed
-    if not access_allowed:
+    if remaining_time is False:  # If time limit is exceeded, redirect
         return redirect(url_for('views.access_restricted'))
-
-    # Get the page number from the query string
+    
+    # Get the page number from the query string, default to 1
     page = request.args.get('page', 1, type=int)
+
+    # Fetch forum details and posts for the given forum ID
     forum = Forum.query.get_or_404(forum_id)
     forum_posts = ForumPost.query.filter_by(forum_id=forum_id).order_by(ForumPost.date_created.desc()).paginate(page=page, per_page=5)
 
-    return render_template('forum_detail.html', forum=forum, forum_posts=forum_posts)
+    # Fetch notifications for the logged-in user
+    notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.timestamp.desc()).all()
+
+    # Render the forum detail template with posts and notifications
+    return render_template('forum_detail.html', forum=forum, forum_posts=forum_posts, notifications=notifications, remaining_time=remaining_time)
 
 @views.route('/post/<int:post_id>/comment', methods=['POST'])
 @login_required
@@ -632,15 +731,14 @@ def delete_post(post_id):
 @views.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
-    """Render the account page if within the allowed time window."""
-    access_allowed = is_within_online_window()
+    """Render the account page with a 60-minute daily time limit."""
 
-    # Debug statement for checking access status
-    print(f"Access allowed: {access_allowed}")
+    # Check if the user has exceeded the 60-minute daily time limit
+    remaining_time = check_time_limit()
 
-    if not access_allowed:
+    if remaining_time is False:  # Redirect if the time limit is exceeded
         return redirect(url_for('views.access_restricted'))
-
+    
     edit_form = EditAccountForm()
     delete_form = DeleteAccountForm()
 
@@ -654,21 +752,17 @@ def account():
                 file_path = os.path.join(current_app.config['IMAGE_FOLDER'], filename)
 
                 try:
-                    # Save the file to the upload folder
                     file.save(file_path)
-                    
-                    # Update the profile picture in the database
                     current_user.profile_picture = filename
                 except Exception as e:
                     flash('Error uploading profile picture.', 'danger')
-                    print(f"Error saving profile picture: {e}")
+                    logging.error(f"Error saving profile picture: {e}")
         
-        # Update other account details
+        # Update account details
         current_user.name = edit_form.name.data
         current_user.bio = edit_form.bio.data
         current_user.website = edit_form.website.data
         current_user.gender = edit_form.gender.data
-
         db.session.commit()
         flash('Account updated successfully!', 'success')
         return redirect(url_for('views.account'))
@@ -680,13 +774,12 @@ def account():
         flash('Account deleted successfully', 'success')
         return redirect(url_for('auth.login'))
 
-    # Fetch the follower and following counts
-    followers_list = current_user.followers.all()  # Users following the current user
-    following_list = current_user.following.all()  # Users the current user is following
+    # Fetch followers and following
+    followers_list = current_user.followers.all()
+    following_list = current_user.following.all()
     followers_count = len(followers_list)
     following_count = len(following_list)
 
-    # Pre-fill the form with current user data for GET request
     if request.method == 'GET':
         edit_form.name.data = current_user.name
         edit_form.bio.data = current_user.bio
@@ -695,13 +788,13 @@ def account():
 
     return render_template(
         'account.html',
-        user=current_user,
         edit_form=edit_form,
         delete_form=delete_form,
         followers_list=followers_list,
         following_list=following_list,
         followers_count=followers_count,
-        following_count=following_count
+        following_count=following_count,
+        remaining_time=remaining_time  # Pass remaining time to template
     )
 
 @views.route('/delete_comment/<int:comment_id>', methods=['POST'])
@@ -727,95 +820,94 @@ def delete_account():
     flash('Account deleted successfully', 'success')
     return redirect(url_for('auth.login'))
 
-@views.route('/edit_profile', methods=['GET', 'POST'])
+@views.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
 @login_required
-def edit_profile():
+def edit_profile(user_id):
+    # Ensure only sahilshah07@gmail.com can edit profiles
+    if current_user.email != 'sahilshah07@gmail.com':
+        flash('You are not authorized to edit this profile.', 'danger')
+        return redirect(url_for('views.account'))
+
+    # Query the user whose profile is being edited
+    user_to_edit = User.query.get_or_404(user_id)
+
+    # Initialize form
     edit_form = EditAccountForm()
 
     if edit_form.validate_on_submit():
-        # Update user profile with form data
-        current_user.first_name = edit_form.first_name.data
-        current_user.name = edit_form.name.data
-        current_user.email = edit_form.email.data
-        current_user.bio = edit_form.bio.data
-        current_user.gender = edit_form.gender.data
-        current_user.website = edit_form.website.data
-        current_user.birthday = edit_form.birthday.data  # Handle the birthday field
+        try:
+            # Debug: Confirm form submission
+            print("Form submitted successfully.")
+            print(f"Updating profile for user: {user_to_edit.first_name}")
 
-        # Handle profile picture upload if a file is selected
-        if 'profile_picture' in request.files:
-            file = request.files['profile_picture']
-            if file and file.filename != '':  # Only proceed if a file is selected
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(current_app.config['IMAGE_FOLDER'], filename)
+            # Update the user with the form data
+            user_to_edit.first_name = edit_form.first_name.data
+            user_to_edit.name = edit_form.name.data
+            user_to_edit.email = edit_form.email.data
+            user_to_edit.bio = edit_form.bio.data
+            user_to_edit.gender = edit_form.gender.data
+            user_to_edit.website = edit_form.website.data
+            user_to_edit.birthday = edit_form.birthday.data
 
-                try:
-                    # Save the file to the profile_pics folder
+            # Handle profile picture upload if selected
+            if 'profile_picture' in request.files:
+                file = request.files['profile_picture']
+                if file and file.filename != '':
+                    # Generate a unique filename using uuid to avoid overwriting
+                    unique_filename = str(uuid.uuid4()) + "_" + secure_filename(file.filename)
+                    file_path = os.path.join(current_app.config['IMAGE_FOLDER'], unique_filename)
+
+                    # Save the file
                     file.save(file_path)
 
-                    # Open the saved image
-                    image = Image.open(file_path)
+                    # Update the user's profile picture
+                    user_to_edit.profile_picture = unique_filename
 
-                    # Create a circular mask for the image
-                    width, height = image.size
-                    mask = Image.new('L', (width, height), 0)
-                    draw = ImageDraw.Draw(mask)
+                    # Debug: Confirm file saved
+                    print(f"Profile picture saved as {unique_filename}")
 
-                    # Draw a circle in the center of the image
-                    circle_radius = min(width, height) // 2
-                    center = (width // 2, height // 2)
-                    draw.ellipse(
-                        (center[0] - circle_radius, center[1] - circle_radius,
-                         center[0] + circle_radius, center[1] + circle_radius), fill=255)
+            # Commit changes to the database
+            db.session.commit()
+            flash('The profile has been updated successfully!', 'success')
+            return redirect(url_for('views.public_account', user_id=user_to_edit.id))
 
-                    # Create a new image with transparent background and paste the circular mask
-                    circular_image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
-                    circular_image.paste(image, (0, 0), mask)
+        except Exception as e:
+            # Log and show any error that occurred
+            print(f"Error while updating profile: {e}")
+            flash('An error occurred while saving your profile. Please try again.', 'danger')
 
-                    # Save the cropped image
-                    circular_image.save(file_path)
-
-                    # Update the profile picture in the database
-                    current_user.profile_picture = filename
-                except Exception as e:
-                    flash('Error uploading or processing the profile picture. Please try again.', 'danger')
-                    print(f"Error saving profile picture: {e}")  # Debugging output
-
-        # Commit the changes to the database, including form data updates and optional profile picture
-        db.session.commit()
-
-        # Flash success message and redirect to the profile page
-        flash('Your profile has been updated successfully!', 'success')
-        return redirect(url_for('views.account'))
-
-    else:
-        # If form is not validated, print errors for debugging
-        for field, errors in edit_form.errors.items():
-            for error in errors:
-                flash(f"Error in {getattr(edit_form, field).label.text}: {error}", 'danger')
-
-    # Pre-fill form with current user data when GET request
+    # Pre-fill form with user data on GET request
     if request.method == 'GET':
-        edit_form.first_name.data = current_user.first_name
-        edit_form.name.data = current_user.name
-        edit_form.email.data = current_user.email
-        edit_form.bio.data = current_user.bio
-        edit_form.gender.data = current_user.gender
-        edit_form.website.data = current_user.website
-        edit_form.birthday.data = current_user.birthday  # Pre-fill the birthday field
+        edit_form.first_name.data = user_to_edit.first_name
+        edit_form.name.data = user_to_edit.name
+        edit_form.email.data = user_to_edit.email
+        edit_form.bio.data = user_to_edit.bio
+        edit_form.gender.data = user_to_edit.gender
+        edit_form.website.data = user_to_edit.website
+        edit_form.birthday.data = user_to_edit.birthday
 
-    return render_template('edit_profile.html', edit_form=edit_form)
+    return render_template('edit_profile.html', edit_form=edit_form, user=user_to_edit)
 
 def create_notification(notification_type, recipient, sender, message, post=None):
+    # Create a new notification instance
     notification = Notification(
         notification_type=notification_type,
-        user_id=recipient.id,
-        from_user_id=sender.id,
-        message=message,
-        post_id=post.id if post else None
+        user_id=recipient.id,  # The recipient (user who receives the notification)
+        from_user_id=sender.id,  # The sender (user who triggered the notification)
+        message=message,  # The notification message
+        post_id=post.id if post else None  # Optionally attach a post to the notification
     )
-    db.session.add(notification)
-    db.session.commit()
+
+    try:
+        # Add the notification to the database session
+        db.session.add(notification)
+        # Commit the transaction to save the notification
+        db.session.commit()
+    except Exception as e:
+        # Log the error and handle potential issues (e.g., rollback the session)
+        current_app.logger.error(f"Error creating notification: {e}")
+        db.session.rollback()
+        raise e  # Optionally, re-raise the error for further handling
 
 @views.route('/post/<int:post_id>/like', methods=['POST'])
 @login_required
@@ -884,15 +976,22 @@ def downvote(post_id):
 def notifications():
     # Check if access is allowed based on the time window
     access_allowed = is_within_online_window()
-    
+
     # Debug statement for checking access status
-    print(f"Access allowed: {access_allowed}")
+    current_app.logger.debug(f"Access allowed: {access_allowed}")
 
     if not access_allowed:
         return redirect(url_for('views.access_restricted'))
 
-    user_notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.timestamp.desc()).all()
-    return render_template('notifications.html', notifications=user_notifications)
+    # Get the page number from the query string
+    page = request.args.get('page', 1, type=int)
+
+    # Paginate the notifications (5 notifications per page)
+    user_notifications = Notification.query.filter_by(user_id=current_user.id)\
+        .order_by(Notification.timestamp.desc())\
+        .paginate(page=page, per_page=5)
+
+    return render_template('forum_detail.html', notifications=user_notifications)
 
 @views.route('/notifications/mark-as-read/<int:notification_id>')
 @login_required

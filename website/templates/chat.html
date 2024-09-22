@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% block title %}
-AI Chat
+AI Chat with Dolly
 {% endblock %}
 
 {% block content %}
 <div id="chat-container" class="chat-container">
     <div id="messages" class="chat-messages">
-        <p id="initial-message" class="initial-message">Type something in the box to talk with AI!</p>
+        <p id="initial-message" class="initial-message">Type something in the box to talk with Dolly!</p>
     </div>
     <div class="chat-input-section">
         <input type="text" id="user-input" placeholder="Type a message..." class="chat-input">
@@ -18,10 +18,10 @@ AI Chat
 
 {% block styles %}
 <style>
-    /* Light mode styling */
+    /* Light mode styling - Purple and White theme */
     body {
         background-color: #fff;
-        color: #000;
+        color: #6a0dad; /* Purple text color */
     }
 
     .chat-container {
@@ -34,30 +34,32 @@ AI Chat
 
     .chat-messages {
         width: 100%;
-        max-width: 600px;
-        border: 2px solid #4da8da;
+        max-width: 700px; /* Increase width for better readability */
+        border: 2px solid #6a0dad; /* Purple border */
         border-radius: 10px;
-        padding: 15px;
+        padding: 20px;
         height: 60vh;
         overflow-y: auto;
-        background-color: #f9f9f9;
-        color: #000;
-        margin-bottom: 15px;
+        background-color: #f9f9f9; /* White background */
+        color: #6a0dad; /* Purple text */
+        margin-bottom: 20px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        font-size: 1.2rem; /* Increase font size for chat messages */
     }
 
     .initial-message {
         margin: 0;
-        padding: 10px;
-        background-color: #e0e0e0;
+        padding: 15px;
+        background-color: #e0d8ee; /* Light purple */
         border-radius: 5px;
-        color: #333;
+        color: #6a0dad; /* Purple text */
         text-align: center;
+        font-size: 1.4rem; /* Larger font for the initial message */
     }
 
     .chat-input-section {
         width: 100%;
-        max-width: 600px;
+        max-width: 700px;
         display: flex;
         align-items: center;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -65,46 +67,103 @@ AI Chat
 
     .chat-input {
         flex: 1;
-        padding: 15px;
-        border: 1px solid #4da8da;
+        padding: 20px;
+        border: 1px solid #6a0dad; /* Purple border */
         background-color: #fff;
-        color: #000;
+        color: #6a0dad; /* Purple text */
         border-radius: 5px 0 0 5px;
-        font-size: 1rem;
+        font-size: 1.2rem; /* Larger font for input */
         outline: none;
         transition: border-color 0.3s ease;
     }
 
     .chat-send-btn {
-        padding: 15px 25px;
-        background-color: #4da8da;
+        padding: 20px 30px;
+        background-color: #6a0dad; /* Purple button */
         color: #fff;
         border: none;
         border-radius: 0 5px 5px 0;
         cursor: pointer;
-        font-size: 1rem;
+        font-size: 1.2rem;
         transition: background-color 0.3s ease, transform 0.2s;
     }
 
-    /* Dark mode styling */
-    .dark-mode .chat-messages {
-        background-color: #1c1c1c;
-        color: #f0f0f0;
+    /* Chat message bubbles */
+    .user-message {
+        margin: 15px 0;
+        padding: 15px;
+        background-color: #e0d8ee; /* Light purple for user message */
+        border-radius: 8px;
+        color: #6a0dad; /* Purple text */
+        text-align: right;
+        font-size: 1.2rem; /* Increase font size */
     }
 
-    .dark-mode .initial-message {
-        background-color: #2a2a2a;
-        color: #f0f0f0;
+    .dolly-message {
+        margin: 15px 0;
+        padding: 15px;
+        background-color: #f0f0f0; /* Light background for Dolly message */
+        border-radius: 8px;
+        color: #6a0dad; /* Purple text */
+        display: flex;
+        align-items: center; /* Align Dolly's image and text to the same level */
+        font-size: 1.2rem; /* Font size same as "You:" */
     }
 
-    .dark-mode .chat-input {
-        background-color: #2c2c2c;
-        color: #f0f0f0;
+    /* Dolly Icon */
+    .dolly-icon {
+        width: 60px;  /* Proper size for the icon */
+        height: 60px;  /* Keep aspect ratio */
+        border-radius: 50%;
+        background-image: url('https://media.istockphoto.com/id/1304928788/vector/down-syndrome-color-portrait-of-a-boy-with-down-syndrome-4-5-years-old-a-cute-smiling-boy.jpg?s=612x612&w=0&k=20&c=9eUBkfQLinIeW2HoF_7Wz0b5A4pIRLrKNIij6FqG_7w='); /* Your provided image URL */
+        background-size: cover;
+        background-position: center; /* Ensure the image is centered */
+        margin-right: 15px;
     }
 
-    .dark-mode .chat-send-btn {
-        background-color: #4da8da;
+    /* Dolly's name styling */
+    .dolly-name {
+        font-size: 1.2rem;  /* Same font size as "You:" */
+        font-weight: bold;   /* Make Dolly's name bold */
+        color: #6a0dad;      /* Keep Dolly's name purple */
+        margin-right: 5px;
+        display: inline;
     }
+
+    .dolly-text {
+        display: inline-block;
+        margin-left: 0; /* Remove margin from the start of Dolly's text */
+    }
+
+    .typing-indicator {
+        margin: 15px 0;
+        padding: 15px;
+        background-color: #e0d8ee; /* Light purple for typing */
+        border-radius: 8px;
+        color: #6a0dad; /* Purple text */
+        font-size: 1.2rem; /* Increase font size */
+    }
+
+    /* Send button hover effect */
+    .chat-send-btn:hover {
+        background-color: #4e0784; /* Darker purple */
+        transform: scale(1.05);
+    }
+
+    .chat-send-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* Scrollbar customization */
+    .chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background-color: #6a0dad; /* Purple scrollbar */
+        border-radius: 10px;
+    }
+
 </style>
 {% endblock %}
 
@@ -125,14 +184,14 @@ AI Chat
             initialMessage.remove();
         }
 
-        messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #4da8da; text-align: right;">You: ${input}</p>`;
+        messagesContainer.innerHTML += `<p class="user-message">You: ${input}</p>`;
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
         document.getElementById('user-input').value = '';
 
         const typingIndicator = document.createElement('p');
-        typingIndicator.style = 'margin: 10px 0; padding: 10px; background-color: #2a2a2a; border-radius: 5px; color: #f0f0f0;';
-        typingIndicator.innerText = 'AI is typing...';
+        typingIndicator.classList.add('typing-indicator');
+        typingIndicator.innerText = 'Dolly is typing...';
         messagesContainer.appendChild(typingIndicator);
 
         try {
@@ -154,28 +213,32 @@ AI Chat
 
             if (data.error) {
                 console.error("Error from backend:", data.error);
-                messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #ff4d4d; border-radius: 5px; color: #fff;">Error: ${data.error}</p>`;
+                messagesContainer.innerHTML += `<p class="dolly-message" style="background-color: #ff4d4d; color: #fff;">Error: ${data.error}</p>`;
             } else {
                 setTimeout(() => {
-                    messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #333; border-radius: 5px; color: #f0f0f0;">AI: ${data.response}</p>`;
+                    messagesContainer.innerHTML += `
+                    <div class="dolly-message">
+                        <span class="dolly-icon"></span>
+                        <span class="dolly-name">Dolly:</span><span class="dolly-text">${data.response}</span>
+                    </div>`;
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }, 1000);
             }
         } catch (error) {
             console.error("Fetch error:", error);
             typingIndicator.remove();
-            messagesContainer.innerHTML += `<p style="margin: 10px 0; padding: 10px; background-color: #ff4d4d; border-radius: 5px; color: #fff;">Fetch error: ${error}</p>`;
+            messagesContainer.innerHTML += `<p class="dolly-message" style="background-color: #ff4d4d; color: #fff;">Fetch error: ${error}</p>`;
         }
     }
 
     const sendButton = document.getElementById('send-btn');
     sendButton.addEventListener('mouseover', () => {
-        sendButton.style.backgroundColor = '#2c91bb';
+        sendButton.style.backgroundColor = '#4e0784';
         sendButton.style.transform = 'scale(1.05)';
     });
 
     sendButton.addEventListener('mouseout', () => {
-        sendButton.style.backgroundColor = '#4da8da';
+        sendButton.style.backgroundColor = '#6a0dad';
         sendButton.style.transform = 'scale(1)';
     });
 

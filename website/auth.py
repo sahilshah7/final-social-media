@@ -64,11 +64,11 @@ def sign_up():
             flash('Email address already in use', 'error')
             return redirect(url_for('auth.sign_up'))
 
-        # Check if the username already exists
-        existing_username = User.query.filter_by(username=username).first()
-        if existing_username:
-            flash('Username is already taken', 'error')
-            return redirect(url_for('auth.sign_up'))
+        # Remove the username existence check to allow duplicates
+        # existing_username = User.query.filter_by(username=username).first()
+        # if existing_username:
+        #     flash('Username is already taken', 'error')
+        #     return redirect(url_for('auth.sign_up'))
 
         # Create a new user instance
         new_user = User(
